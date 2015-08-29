@@ -23,6 +23,36 @@
         }
       },
 
+      // returns a promise that resolves to true if loader is in VR mode.
+      vrLoaderMode: {
+        value: function() {
+          return new Promise(function(resolve, reject) {
+            var channel = new MessageChannel();
+            window.top.postMessage({type: 'checkVr'}, '*', [channel.port2]);
+            channel.port1.onmessage = function(message) {
+              if (message.data.data.isVr) {
+                resolve(true);
+              } else {
+                resolve(false);
+              }
+            }
+          });
+        }
+      },
+
+      // returns promise that resolves true if this scene is nested in VRLoader.
+      vrLoader: {
+        value: function() {
+          return new Promise(function(resolve, reject) {
+            if (window.top !== window.self) {
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          });
+        }
+      },
+
       attachEventListeners: {
         value: function() {
           var self = this;
@@ -71,23 +101,77 @@
         }
       },
 
+      attachMessageListeners: {
+        value: function() {
+          function handleMessage(e) {
+            if (e.data && e.data.type === 'fullscreen') {
+              switch (e.data.data) {
+                // set renderer with fullscreen VR enter and exit.
+                case 'enter':
+                  this.setStereoRenderer();
+                  break;
+                case 'exit':
+                  this.setMonoRenderer();
+              }
+            }
+          }
+
+          window.addEventListener('message', handleMessage.bind(this));
+        }
+      },
+
       fullscreenChange: {
         value: function(e) {
           // switch back to the mono renderer if we have dropped out of fullscreen VR mode.
           var fsElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
           if (!fsElement) {
-            this.renderer = this.monoRenderer;
+            this.setMonoRenderer();
           }
         }
       },
 
       elementLoaded: {
         value: function() {
+          var self = this;
           this.elementsPending--;
           if (this.elementsPending === 0) {
             this.resizeCanvas();
-            this.render();
+            this.setupLoader();
           }
+        }
+      },
+
+      createEnterVrButton: {
+        value: function() {
+          var vrButton = document.createElement('button');
+          vrButton.textContent = 'Enter VR';
+          vrButton.style = 'position: absolute; top: 10px; left: 10px;'
+          document.body.appendChild(vrButton);
+          vrButton.addEventListener('click', this.enterVR.bind(this));
+        }
+      },
+
+      setupLoader: {
+        value: function() {
+          var self = this;
+          this.vrLoader().then(function(loader) {
+            // inside loader, check for vr mode before kicking off render loop.
+            if (loader) {
+              self.attachMessageListeners();
+              self.vrLoaderMode().then(function(isVr) {
+                if (isVr) {
+                  self.setStereoRenderer();
+                } else {
+                  self.setMonoRenderer();
+                }
+                window.top.postMessage({type: 'ready'}, '*');
+                self.render();
+              });
+            } else {
+              self.createEnterVrButton();
+              self.render();
+            }
+          });
         }
       },
 
@@ -144,6 +228,20 @@
         value: function() {
           this.renderer = this.stereoRenderer;
           this.stereoRenderer.setFullScreen(true);
+        }
+      },
+
+      setStereoRenderer: {
+        value: function() {
+          this.renderer = this.stereoRenderer;
+          this.resizeCanvas();
+        }
+      },
+
+      setMonoRenderer: {
+        value: function() {
+          this.renderer = this.monoRenderer;
+          this.resizeCanvas();
         }
       },
 

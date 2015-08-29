@@ -31,28 +31,19 @@
     <vr-camera fov="45" near="1" far="2000" y="50">
       <vr-cursor z="-50" radius="0.5"></vr-cursor>
     </vr-camera>
-    <vr-cube z="-500" width="50" height="50" depth="50" y="25"></vr-cube>
+    <vr-cube z="-500" width="50" height="50" depth="50" y="25" href="cube.html"></vr-cube>
     <vr-cube z="-300" width="50" height="50" depth="50" y="25" x="100"></vr-cube>
     <vr-cube z="-300" width="50" height="50" depth="50" y="25" x="-100"></vr-cube>
     <vr-grid size="1000"></vr-grid>
   </vr-scene>
-  <button class="vr-button">Enter VR</button>
   <script>
-    var scene = document.querySelector('vr-scene');
-    var fsButton = document.querySelector('.vr-button');
-    fsButton.addEventListener('click', function() {
-      scene.enterVR();
-    });
     var cubes = document.querySelectorAll('vr-cube');
     var i;
     for (i = 0; i < cubes.length; ++i) {
       cubes[i].addEventListener('click', function(evt) {
-        var cube = evt.currentTarget;
-        var material = cube.getAttribute('material');
-        if (material === 'yellow') {
-          evt.currentTarget.setAttribute('material', 'normal');
-        } else {
-          evt.currentTarget.setAttribute('material', 'yellow');
+        var href = evt.currentTarget.getAttribute('href');
+        if (href) {
+          window.top.postMessage({type: 'navigate', data: {url: href}}, '*')
         }
       });
     }

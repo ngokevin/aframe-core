@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Cube</title>
-  <meta name="description" content="Space">
+  <meta name="description" content="Cube">
   <link rel="stylesheet" type="text/css" href="style/main.css" />
   <link rel="stylesheet" type="text/css" href="../dist/vr-markup.css" />
   <script src="../lib/vendor/dat.gui.js"></script>
@@ -19,14 +19,17 @@
     <vr-material id="basic" type="MeshBasicMaterial"></vr-material>
   </vr-assets>
   <vr-scene>
-    <vr-cube id="cube" rotx="45" roty="45" width="200" height="200" depth="200" z="-500" material="basic"></vr-cube>
+    <vr-camera fov="45" near="1" far="2000" y="50">
+      <vr-cursor z="-50" radius="0.5"></vr-cursor>
+    </vr-camera>
+    <vr-cube id="cube" rotx="45" roty="45" width="200" height="200" depth="200" z="-500" material="basic" href="cube2.html"></vr-cube>
   </vr-scene>
-  <button class="vr-button">Enter VR</button>
   <script>
-    var scene = document.querySelector('vr-scene');
-    var fsButton = document.querySelector('.vr-button');
-    fsButton.addEventListener('click', function() {
-      scene.enterVR();
+    document.getElementById('cube').addEventListener('click', function (e) {
+      var href = e.target.getAttribute('href');
+      if (href) {
+        window.top.postMessage({type: 'navigate', data: {url: href}}, '*');
+      }
     });
   </script>
 </body>
