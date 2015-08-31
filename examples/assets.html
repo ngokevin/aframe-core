@@ -24,13 +24,5 @@
     <vr-mesh geometry="cube" rotx="45" roty="45" material="normal" x="-5" y="3"></vr-mesh>
     <vr-mesh geometry="sphere" material="basic" color="#CC0000" x="5" y="3"></vr-mesh>
   </vr-scene>
-  <button class="vr-button">Enter VR</button>
-  <script>
-    var scene = document.querySelector('vr-scene');
-    var fsButton = document.querySelector('.vr-button');
-    fsButton.addEventListener('click', function() {
-      scene.enterVR();
-    });
-  </script>
 </body>
 </html>
