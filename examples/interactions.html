@@ -23,27 +23,22 @@
     <vr-camera y="1.8" z="15">
       <vr-cursor z="-1" radius="0.005"></vr-cursor>
     </vr-camera>
-    <vr-cube material="normal" width="4" height="4" depth="4" y="2" z="-8"></vr-cube>
+    <vr-cube material="normal" width="4" height="4" depth="4" y="2" z="-8" href="cube.html"></vr-cube>
     <vr-cube material="normal" width="4" height="4" depth="4" y="2" x="6"></vr-cube>
     <vr-cube material="normal" width="4" height="4" depth="4" y="2" x="-6"></vr-cube>
     <vr-grid size="50"></vr-grid>
   </vr-scene>
-  <button class="vr-button">Enter VR</button>
   <script>
-    var scene = document.querySelector('vr-scene');
-    var fsButton = document.querySelector('.vr-button');
-    fsButton.addEventListener('click', function() {
-      scene.enterVR();
-    });
-    
     var cubes = document.querySelectorAll('vr-cube');
     var i;
     for (i = 0; i < cubes.length; ++i) {
       cubes[i].addEventListener('click', function(evt) {
         var cube = evt.currentTarget;
         var material = cube.getAttribute('material');
-        // console.log(material);
-        
+        var href = cube.getAttribute('href');
+        if (href) {
+          window.top.postMessage({type: 'navigate', data: {url: href}}, '*');
+        }
         if (material === 'highlight') {
           evt.currentTarget.setAttribute('material', 'normal');
         } else {
