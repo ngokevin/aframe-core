@@ -86,4 +86,4 @@ gulp.task('server', function() {
     }));
 });
 
-gulp.task('default', ['clean', 'build'])
+gulp.task('default', ['clean', 'build']);
