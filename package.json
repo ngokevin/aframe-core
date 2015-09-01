@@ -20,8 +20,8 @@
     "minimist": "1.1.1"
   },
   "scripts": {
-    "start": "gulp watch",
-    "dev": "gulp watch",
+    "start": "gulp dev",
+    "dev": "gulp dev",
     "build": "gulp",
     "postinstall": "gulp"
   },

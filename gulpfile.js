@@ -81,9 +81,10 @@ gulp.task('server', function() {
     .pipe(webserver({
       livereload: false,
       directoryListing: true,
-      open: "examples/",
       port: 9000
     }));
 });
+
+gulp.task('dev', ['watch', 'server']);
 
 gulp.task('default', ['clean', 'build']);
