@@ -129,7 +129,6 @@
           var animationList = this.hasAttribute('animation') ?
             this.getAttribute('animation').split(' ') : [];
           animationList.forEach(this.startTween.bind(this));
-          //console.log(animationList);
         },
       },
 
@@ -139,16 +138,13 @@
           var from = this.getAttribute(animationTag.prop);
           this.fixUpDefaultValues(animationTag.prop, from);
           var self = this;
-          //console.log(animationTag.prop, from, animationTag.to);
           new TWEEN.Tween(from)
             .to(animationTag.to, animationTag.duration)
             .delay(animationTag.delay)
             .onUpdate(function () {
               self.setAttribute(animationTag.prop, this);
             })
-            //.onComplete(function () {})
             .start();
-          //console.log(animationTag);
         },
       },
 
