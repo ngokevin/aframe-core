@@ -1,4 +1,4 @@
-/* globals define, VRNode */
+/* globals define, VRNode, TWEEN */
 (function(define){'use strict';define(function(require,exports,module){
 
   var proto =  Object.create(
@@ -39,6 +39,7 @@
           }
           VRObject.prototype.onAttributeChanged.call(this);
           VRNode.prototype.load.call(this);
+          this.addAnimations();
         }
       },
 
@@ -90,6 +91,17 @@
         }
       },
 
+      setAttribute: {
+        value: function(attr, val) {
+          if (attr === 'position' ||
+              attr === 'rotation' ||
+              attr === 'scale') {
+            val = [val.x, val.y, val.z].join(' ');
+          }
+          HTMLElement.prototype.setAttribute.call(this, attr, val);
+        },
+      },
+
       parseAttributeString: {
         value: function(str) {
           var values;
@@ -110,7 +122,49 @@
             this.onAttributeChanged();
           }
         }
-      }
+      },
+
+      addAnimations: {
+        value: function() {
+          var animationList = this.hasAttribute('animation') ?
+            this.getAttribute('animation').split(' ') : [];
+          animationList.forEach(this.startTween.bind(this));
+          //console.log(animationList);
+        },
+      },
+
+      startTween: {
+        value: function(animationName) {
+          var animationTag = document.getElementById(animationName);
+          var from = this.getAttribute(animationTag.prop);
+          this.fixUpDefaultValues(animationTag.prop, from);
+          var self = this;
+          //console.log(animationTag.prop, from, animationTag.to);
+          new TWEEN.Tween(from)
+            .to(animationTag.to, animationTag.duration)
+            .delay(animationTag.delay)
+            .onUpdate(function () {
+              self.setAttribute(animationTag.prop, this);
+            })
+            //.onComplete(function () {})
+            .start();
+          //console.log(animationTag);
+        },
+      },
+
+      fixUpDefaultValues: {
+        value: function (prop, val) {
+          if (prop === 'position' || prop === 'rotation') {
+            val.x = val.x || 0;
+            val.y = val.y || 0;
+            val.z = val.z || 0;
+          } else if (prop === 'scale') {
+            val.x = val.x || 1;
+            val.y = val.y || 1;
+            val.z = val.z || 1;
+          }
+        },
+      },
   });
 
   // Registering element and exporting prototype

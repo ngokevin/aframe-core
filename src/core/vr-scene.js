@@ -1,4 +1,4 @@
-/* globals define, VRScene, VRTags */
+/* globals define, VRScene, VRTags, TWEEN */
 (function(define){'use strict';define(function(require,exports,module){
 
   var proto = Object.create(
@@ -86,7 +86,7 @@
           this.pendingElements--;
           if (this.pendingElements === 0) {
             this.resizeCanvas();
-            this.render();
+            this.render(performance.now());
           }
         }
       },
@@ -208,9 +208,10 @@
       },
 
       render: {
-        value: function() {
+        value: function(t) {
+          TWEEN.update(t);
           // Updates behaviors
-          this.behaviors.forEach(function(behavior) { behavior.update(); });
+          this.behaviors.forEach(function(behavior) { behavior.update(t); });
           this.renderer.render( this.object3D, this.camera );
           this.animationFrameID = window.requestAnimationFrame(this.render.bind(this));
         }
