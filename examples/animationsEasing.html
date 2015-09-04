@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Animations with Easing</title>
+  <link rel="stylesheet" type="text/css" href="../style/vr-markup.css">
+  <link rel="stylesheet" type="text/css" href="style/main.css">
+  <script src="../build/vr-markup.js"></script>
+  <!-- User-defined components -->
+  <script src="../components/vr-cube.js"></script>
+  <script src="../components/vr-grid.js"></script>
+  <style id="vr-styles">
+    body {
+      background-color: black;
+    }
+  </style>
+</head>
+
+<body>
+  <vr-assets>
+    <vr-animation id="dropA" duration="5000" attribute="position" to="-4 1 -8"></vr-animation>
+    <vr-animation id="dropB" duration="5000" attribute="position" to="-3 1 -8" easing="Quartic" direction="InOut"></vr-animation>
+    <vr-animation id="dropC" duration="5000" attribute="position" to="-2 1 -8" easing="Cubic" direction="InOut"></vr-animation>
+    <vr-animation id="dropD" duration="5000" attribute="position" to="-1 1 -8" easing="Quartic" direction="InOut"></vr-animation>
+    <vr-animation id="dropE" duration="5000" attribute="position" to="0 1 -8" easing="Quintic" direction="InOut"></vr-animation>
+    <vr-animation id="dropF" duration="5000" attribute="position" to="1 1 -8" easing="Sinusoidal" direction="InOut"></vr-animation>
+    <vr-animation id="dropG" duration="5000" attribute="position" to="2 1 -8" easing="Exponential" direction="InOut"></vr-animation>
+    <vr-animation id="dropH" duration="5000" attribute="position" to="3 1 -8" easing="Circular" direction="InOut"></vr-animation>
+    <vr-animation id="dropI" duration="5000" attribute="position" to="4 1 -8" easing="Elastic" direction="InOut"></vr-animation>
+    <vr-animation id="dropJ" duration="5000" attribute="position" to="5 1 -8" easing="Back" direction="InOut"></vr-animation>
+    <vr-animation id="dropK" duration="5000" attribute="position" to="6 1 -8" easing="Bounce" direction="InOut"></vr-animation>
+  </vr-assets>
+  <vr-scene>
+    <vr-camera position="1 1.8 2"></vr-camera>
+    <vr-cube animation="dropA" position="-4 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-cube animation="dropB" position="-3 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-cube animation="dropC" position="-2 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-cube animation="dropD" position="-1 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-cube animation="dropE" position="0 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-cube animation="dropF" position="1 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-cube animation="dropG" position="2 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-cube animation="dropH" position="3 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-cube animation="dropI" position="4 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-cube animation="dropJ" position="5 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-cube animation="dropK" position="6 5 -8" width="1" height="1" depth="1"></vr-cube>
+    <vr-grid size="50"></vr-grid>
+  </vr-scene>
+</body>
+</html>
