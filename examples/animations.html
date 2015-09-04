@@ -33,28 +33,5 @@
     <vr-grid size="50"></vr-grid>
   </vr-scene>
   <button class="vr-button">Enter VR</button>
-  <script>
-    var scene = document.querySelector('vr-scene');
-    var fsButton = document.querySelector('.vr-button');
-    fsButton.addEventListener('click', function() {
-      scene.enterVR();
-    });
-
-    var cubes = document.querySelectorAll('vr-cube');
-    var i;
-    for (i = 0; i < cubes.length; ++i) {
-      cubes[i].addEventListener('click', function(evt) {
-        var cube = evt.currentTarget;
-        var material = cube.getAttribute('material');
-        // console.log(material);
-
-        if (material === 'highlight') {
-          evt.currentTarget.setAttribute('material', 'normal');
-        } else {
-          evt.currentTarget.setAttribute('material', 'highlight');
-        }
-      });
-    }
-  </script>
 </body>
 </html>
