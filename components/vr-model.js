@@ -6,10 +6,8 @@
     {
       prototype: Object.create(
         VRObject.prototype, {
-
           init: {
             value: function() {
-
               var self = this;
               var src = this.getAttribute('src');
               
@@ -30,7 +28,8 @@
                 self.load();
               });
             }
-          }
+          },
+          attachedCallback: {}
         })
     }
   );
