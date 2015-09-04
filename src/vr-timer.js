@@ -1,10 +1,10 @@
 /* global VRTags, VRNode */
-/* exported VRBehavior */
+/* exported VRTimer */
 
-VRTags["VR-BEHAVIOR"] = true;
+VRTags["VR-TIMER"] = true;
 
-var VRBehavior = document.registerElement(
-  'vr-behavior',
+var VRTimer = document.registerElement(
+  'vr-timer',
   {
     prototype: Object.create(
       VRNode.prototype,
@@ -13,12 +13,12 @@ var VRBehavior = document.registerElement(
           value: function() {
             var sceneEl = document.querySelector('vr-scene');
             this.sceneEl = sceneEl;
-            this.sceneEl.addBehavior(this);
+            this.sceneEl.addTimer(this);
             this.init();
           }
         },
 
-        // Tags that inherit from VRBehavior should define their own update
+        // Tags that inherit from VRTimer should define their own update
         // function.
         update: {
           value: function() { /* no op */}
