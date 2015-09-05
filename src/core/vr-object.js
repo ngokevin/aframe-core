@@ -64,9 +64,24 @@ var VRObject = document.registerElement(
             this.object3D.el = this;
             // It attaches itself to the threejs parent object3D
             this.addToParent();
+            // It sets default values on the attributes if they're not defined
+            this.initAttributes();
             VRObject.prototype.onAttributeChanged.call(this);
             VRNode.prototype.load.call(this);
+            this.addAnimations();
           }
+        },
+
+        setAttribute: {
+          value: function(attr, val) {
+            if (typeof val === 'object' &&
+              (attr === 'position' ||
+               attr === 'rotation' ||
+               attr === 'scale')) {
+                val = [val.x, val.y, val.z].join(' ');
+            }
+            HTMLElement.prototype.setAttribute.call(this, attr, val);
+          },
         },
 
         remove: {
@@ -75,33 +90,49 @@ var VRObject = document.registerElement(
           }
         },
 
+        initAttributes: {
+          value: function(el) {
+            var position = this.getAttribute('position');
+            var rotation = this.getAttribute('rotation');
+            var scale = this.getAttribute('scale');
+            if (!position) { this.setAttribute('position', '0 0 0'); }
+            if (!rotation) { this.setAttribute('rotation', '0 0 0'); }
+            if (!scale) { this.setAttribute('scale', '1 1 1'); }
+          }
+        },
+
+        addAnimations: {
+          value: function() {
+            var animations = this.hasAttribute('animation') ?
+              this.getAttribute('animation').split(' ') : [];
+            var attachObject = function (animationName) {
+              var el = document.getElementById(animationName);
+              if (el) { el.add(this); }
+            }.bind(this);
+            animations.forEach(attachObject);
+          },
+        },
+
         onAttributeChanged: {
           value: function() {
             this.object3D = this.object3D || new THREE.Object3D();
-
             // Position
             var position = this.getAttribute('position');
-            var x = position.x || 0;
-            var y = position.y || 0;
-            var z = position.z || 0;
 
             // Rotation
             var rotation = this.getAttribute('rotation');
-            var rotationX = THREE.Math.degToRad(rotation.x) || 0;
-            var rotationY = THREE.Math.degToRad(rotation.y) || 0;
-            var rotationZ = THREE.Math.degToRad(rotation.z) || 0;
+            var rotationX = THREE.Math.degToRad(rotation.x);
+            var rotationY = THREE.Math.degToRad(rotation.y);
+            var rotationZ = THREE.Math.degToRad(rotation.z);
 
             // Scale
             var scale = this.getAttribute('scale');
-            var scaleX = scale.x || 1;
-            var scaleY = scale.y || 1;
-            var scaleZ = scale.z || 1;
 
             // Setting three.js parameters
-            this.object3D.position.set(x, y, z);
+            this.object3D.position.set(position.x, position.y, position.z);
             this.object3D.rotation.order = 'YXZ';
             this.object3D.rotation.set(rotationX, rotationY, rotationZ);
-            this.object3D.scale.set(scaleX, scaleY, scaleZ);
+            this.object3D.scale.set(scale.x, scale.y, scale.z);
           }
         },
 
@@ -120,7 +151,7 @@ var VRObject = document.registerElement(
         parseAttributeString: {
           value: function(str) {
             var values;
-            if (!str) { return {}; }
+            if (!str) { return null; }
             values = str.split(' ');
             return {
               x: parseFloat(values[0]),
