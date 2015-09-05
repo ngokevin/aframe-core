@@ -26,9 +26,9 @@
 
           getGeometry: {
             value: function() {
-              var width = parseFloat(this.getAttribute('width')) || 200;
-              var height = parseFloat(this.getAttribute('height')) || 200;
-              var depth = parseFloat(this.getAttribute('depth')) || 200;
+              var width = parseFloat(this.getAttribute('width')) || 10;
+              var height = parseFloat(this.getAttribute('height')) || 10;
+              var depth = parseFloat(this.getAttribute('depth')) || 10;
               return new THREE.BoxGeometry( width, height, depth );
             }
           },
