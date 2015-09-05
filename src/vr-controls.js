@@ -30,12 +30,6 @@ var VRControls = document.registerElement(
             this.setAttribute('locomotion', true);
             this.setAttribute('mouse-look', true);
 
-            document.addEventListener('DOMContentLoaded', this.onDOMContentLoaded.bind(this));
-          }
-        },
-
-        onDOMContentLoaded: {
-          value: function() {
             this.attachMouseKeyboardListeners();
             this.load();
           }
