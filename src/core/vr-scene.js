@@ -173,10 +173,10 @@ var VRScene = document.registerElement(
 
         setupScene: {
           value: function() {
-            this.behaviors = [];
+            this.timers = [];
             this.cameraControls = this.querySelector('vr-controls');
             if (this.cameraControls) {
-              this.behaviors.push(this.cameraControls);
+              this.timers.push(this.cameraControls);
             }
             // The canvas where the WebGL context will be painted
             this.setupCanvas();
@@ -274,9 +274,9 @@ var VRScene = document.registerElement(
           }
         },
 
-        addBehavior: {
-          value: function(behavior) {
-            this.behaviors.push(behavior);
+        addTimer: {
+          value: function(timer) {
+            this.timers.push(timer);
           }
         },
 
@@ -290,8 +290,8 @@ var VRScene = document.registerElement(
         render: {
           value: function(t) {
             TWEEN.update(t);
-            // Updates behaviors
-            this.behaviors.forEach(function(behavior) { behavior.update(t); });
+            // Updates timers
+            this.timers.forEach(function(timer) { timer.update(t); });
             this.renderer.render( this.object3D, this.camera );
             this.animationFrameID = window.requestAnimationFrame(this.render.bind(this));
           }

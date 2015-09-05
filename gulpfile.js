@@ -57,7 +57,7 @@ function build(debug, filename, callback) {
           'src/core/vr-scene.js',
           'src/core/vr-camera.js',
           'src/core/vr-assets.js',
-          'src/vr-behavior.js',
+          'src/vr-timer.js',
           'src/vr-animation.js',
           'src/vr-material.js',
           'src/vr-geometry.js',
