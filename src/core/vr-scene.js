@@ -113,7 +113,7 @@ var VRScene = module.exports = document.registerElement(
             // switch back to the mono renderer if we have dropped out of fullscreen VR mode.
             var fsElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
             if (!fsElement) {
-              this.renderer = this.monoRenderer;
+              this.setMonoRenderer();
             }
           }
         },
@@ -181,6 +181,7 @@ var VRScene = module.exports = document.registerElement(
           value: function() {
             this.renderer = this.stereoRenderer;
             this.resizeCanvas();
+            this.enterPointerLock();
           }
         },
 
@@ -188,6 +189,7 @@ var VRScene = module.exports = document.registerElement(
           value: function() {
             this.renderer = this.monoRenderer;
             this.resizeCanvas();
+            this.exitPointerLock();
           }
         },
 
@@ -241,10 +243,39 @@ var VRScene = module.exports = document.registerElement(
           }
         },
 
+        enterPointerLock: {
+          value: function () {
+            var el = this.canvas;
+
+            el.requestPointerLock = el.requestPointerLock ||
+              el.mozRequestPointerLock ||
+              el.webkitRequestPointerLock;
+
+            if (el.requestPointerLock) {
+              el.requestPointerLock();
+            }
+          }
+        },
+
+        exitPointerLock: {
+          value: function () {
+            var el = this.canvas;
+
+            el.exitPointerLock = el.exitPointerLock ||
+              el.mozExitPointerLock ||
+              el.webkitExitPointerLock;
+
+            if (el.exitPointerLock) {
+              el.exitPointerLock();
+            }
+          }
+        },
+
         enterVR: {
           value: function() {
             this.renderer = this.stereoRenderer;
             this.stereoRenderer.setFullScreen(true);
+            this.enterPointerLock(this.canvas);
           }
         },
 
