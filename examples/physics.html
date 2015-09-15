@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Cube</title>
+  <meta name="description" content="Cube">
+  <link rel="stylesheet" type="text/css" href="../style/vr-markup.css">
+  <link rel="stylesheet" type="text/css" href="style/main.css">
+  <script src="../build/vr-markup.js"></script>
+  <!-- User-defined component example -->
+  <script src="../components/vr-cube.js"></script>
+  <script src="../components/vr-grid.js"></script>
+  <script src="js/CannonDebugRenderer.js"></script>
+</head>
+
+<body>
+  <vr-scene>
+    <vr-physics></vr-physics>
+    <vr-controls></vr-controls>
+    <vr-camera position="0 1.8 40"></vr-camera>
+    <vr-cube id="cube" position="-5 12 0" rotation="0 45 0" width="5" height="5" depth="5"></vr-cube>
+    <vr-cube id="cube" position="5 12 0" rotation="0 45 0" width="5" height="5" depth="5"></vr-cube>
+    <vr-cube id="cube" position="0 5 0" rotation="0 45 0" width="5" height="5" depth="5"></vr-cube>
+    <vr-grid size="50" mass="0"></vr-grid>
+  </vr-scene>
+</body>
+</html>
