@@ -1,29 +1,24 @@
-/* global VRTags, VRNode */
-/* exported VRBehavior */
+require('./vr-register-element');
 
-VRTags["VR-BEHAVIOR"] = true;
+var VRNode = require('./core/vr-node');
 
-var VRBehavior = document.registerElement(
+module.exports = document.registerElement(
   'vr-behavior',
   {
     prototype: Object.create(
       VRNode.prototype,
       {
         createdCallback: {
-          value: function() {
-            var sceneEl = document.querySelector('vr-scene');
-            this.sceneEl = sceneEl;
+          value: function () {
             this.sceneEl.addBehavior(this);
-            this.init();
           }
         },
 
         // Tags that inherit from VRBehavior should define their own update
         // function.
         update: {
-          value: function() { /* no op */}
-        },
-      }
-    )
+          value: function () { /* no op */ }
+        }
+      })
   }
 );

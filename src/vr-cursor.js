@@ -1,18 +1,19 @@
-/* global VRTags, VRObject */
-/* exported VRCursor */
+require('./vr-register-element');
 
-VRTags["VR-CURSOR"] = true;
+var THREE = require('../lib/three');
 
-var VRCursor = document.registerElement(
+var VRObject = require('./core/vr-object');
+
+module.exports = document.registerElement(
   'vr-cursor',
   {
     prototype: Object.create(
       VRObject.prototype, {
-        init: {
-          value: function() {
+        createdCallback: {
+          value: function () {
             var material = this.getMaterial();
             var geometry = this.getGeometry();
-            this.object3D = new THREE.Mesh( geometry, material );
+            this.object3D = new THREE.Mesh(geometry, material);
             this.raycaster = new THREE.Raycaster();
             this.attachEventListeners();
             this.load();
@@ -20,20 +21,20 @@ var VRCursor = document.registerElement(
         },
 
         attachEventListeners: {
-          value: function() {
+          value: function () {
             document.addEventListener('mousedown', this.onMouseDown.bind(this), false);
             this.addEventListener('click', this.handleClick.bind(this));
           }
         },
 
         onMouseDown: {
-          value: function() {
+          value: function () {
             this.click();
           }
         },
 
-        onAttributeChanged: {
-          value: function() {
+        attributeChangedCallback: {
+          value: function () {
             var material = this.getMaterial();
             var geometry = this.getGeometry();
             this.object3D.geometry = geometry;
@@ -42,44 +43,46 @@ var VRCursor = document.registerElement(
         },
 
         getGeometry: {
-          value: function() {
+          value: function () {
             var radius = parseFloat(this.getAttribute('radius')) || 10;
             var geometryId = this.getAttribute('geometry');
-            var geometryEl = geometryId? document.querySelector('#' + geometryId) : undefined;
-            return (geometryEl && geometryEl.geometry) || new THREE.SphereGeometry( radius, 64, 40 );
+            var geometryEl = geometryId ? document.querySelector('#' + geometryId) : undefined;
+            return (geometryEl && geometryEl.geometry) || new THREE.SphereGeometry(radius, 64, 40);
           }
         },
 
         getMaterial: {
-          value: function() {
+          value: function () {
             var materialId = this.getAttribute('material');
-            var materialEl = materialId? document.querySelector('#' + materialId) : undefined;
-            return (materialEl && materialEl.material) || new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide });
+            var materialEl = materialId ? document.querySelector('#' + materialId) : undefined;
+            return (materialEl && materialEl.material) || new THREE.MeshBasicMaterial({color: 0xff0000, side: THREE.DoubleSide});
           }
         },
 
         intersect: {
-          value: function(objects) {
-            var camera = this.sceneEl.camera;
+          value: function (objects) {
             var raycaster = this.raycaster;
             var cursor = this.object3D;
             var cursorPosition = cursor.position.clone();
-            var cursorPositionWorld = cursor.localToWorld( cursorPosition );
-            var direction = cursorPositionWorld.sub(camera.position).normalize();
-            raycaster.set( camera.position, direction );
-            return raycaster.intersectObjects( objects, true );
+            cursor.localToWorld(cursorPosition);
+            var parent = this.parentNode.object3D;
+            var parentPosition = parent.position.clone();
+            parent.localToWorld(parentPosition);
+            var direction = cursorPosition.sub(parentPosition).normalize();
+            raycaster.set(parentPosition, direction);
+            return raycaster.intersectObjects(objects, true);
           }
         },
 
         handleClick: {
-          value: function() {
+          value: function () {
             var scene = this.sceneEl.object3D;
             var intersectedObjects = this.intersect(scene.children);
-            intersectedObjects.forEach(function(obj) {
+            intersectedObjects.forEach(function (obj) {
               obj.object.el.click();
             });
           }
         }
-    })
+      })
   }
 );

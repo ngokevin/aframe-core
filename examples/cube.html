@@ -3,28 +3,20 @@
 <head>
   <meta charset="utf-8">
   <title>Cube</title>
-  <meta name="description" content="Space">
-  <link rel="stylesheet" type="text/css" href="style/main.css" />
-  <link rel="stylesheet" type="text/css" href="../dist/vr-markup.css" />
-  <script src="../dist/vr-markup.js"></script>
-  <script src="../lib/vendor/VRControls.js"></script>
-  <script src="../lib/vendor/VREffect.js"></script>
-  <!-- User defined component example -->
+  <meta name="description" content="Cube">
+  <link rel="stylesheet" type="text/css" href="../style/vr-markup.css">
+  <link rel="stylesheet" type="text/css" href="style/main.css">
+  <script src="../build/vr-markup.js"></script>
+  <!-- User-defined component example -->
   <script src="../components/vr-cube.js"></script>
 </head>
 
 <body>
   <vr-scene>
-    <vr-camera position="0 1.8 20"></vr-camera>
-    <vr-cube id="cube" width="5" height="5" depth="5" rotation="45 45 0" position="0 2 0"></vr-cube>
+    <vr-controls position="0 1.8 20">
+      <vr-camera></vr-camera>
+    </vr-controls>
+    <vr-cube id="cube" position="0 0 0" rotation="0 45 0" width="5" height="5" depth="5"></vr-cube>
   </vr-scene>
-  <button class="vr-button">Enter VR</button>
-  <script>
-    var scene = document.querySelector('vr-scene');
-    var fsButton = document.querySelector('.vr-button');
-    fsButton.addEventListener('click', function() {
-      scene.enterVR();
-    });
-  </script>
 </body>
 </html>

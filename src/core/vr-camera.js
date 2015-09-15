@@ -1,16 +1,16 @@
-/* global VRObject, VRTags */
+require('../vr-register-element');
 
-// Registering element
-VRTags["VR-CAMERA"] = true;
+var THREE = require('../../lib/three');
+var VRObject = require('./vr-object');
 
-document.registerElement(
+module.exports = document.registerElement(
   'vr-camera',
   {
     prototype: Object.create(
       VRObject.prototype,
       {
-        init: {
-          value: function() {
+        createdCallback: {
+          value: function () {
             var camera = this.object3D = new THREE.PerspectiveCamera();
             // This should probably managed within vr-scene
             this.sceneEl.camera = camera;
@@ -19,8 +19,26 @@ document.registerElement(
           }
         },
 
+        attributeChangedCallback: {
+          value: function () {
+            // Camera parameters
+            var fov = parseFloat(this.getAttribute('fov')) || 45;
+            var near = parseFloat(this.getAttribute('near')) || 1;
+            var far = parseFloat(this.getAttribute('far')) || 10000;
+            var aspect = parseFloat(this.getAttribute('aspect')) ||
+                         window.innerWidth / window.innerHeight;
+
+            // Setting three.js camera parameters
+            this.object3D.fov = fov;
+            this.object3D.near = near;
+            this.object3D.far = far;
+            this.object3D.aspect = aspect;
+            this.object3D.updateProjectionMatrix();
+          }
+        },
+
         saveInitialValues: {
-          value: function() {
+          value: function () {
             if (this.initValues) { return; }
             this.initValues = {
               x: parseFloat(this.getAttribute('x')) || 0,
@@ -39,7 +57,7 @@ document.registerElement(
         },
 
         restoreInitialValues: {
-          value: function() {
+          value: function () {
             if (!this.initValues) { return; }
             this.setAttribute('x', this.initValues.x);
             this.setAttribute('y', this.initValues.y);
@@ -54,26 +72,8 @@ document.registerElement(
           }
         },
 
-        onAttributeChanged: {
-          value: function() {
-            // Camera parameters
-            var fov = parseFloat(this.getAttribute('fov')) || 45;
-            var near = parseFloat(this.getAttribute('near')) || 1;
-            var far = parseFloat(this.getAttribute('far')) || 10000;
-            var aspect = parseFloat(this.getAttribute('aspect')) ||
-                         window.innerWidth / window.innerHeight;
-
-            // Setting three.js camera parameters
-            this.object3D.fov = fov;
-            this.object3D.near = near;
-            this.object3D.far = far;
-            this.object3D.aspect = aspect;
-            this.object3D.updateProjectionMatrix();
-          }
-        },
-
         reset: {
-          value: function() {
+          value: function () {
             this.restoreInitialValues();
           }
         }

@@ -4,56 +4,44 @@
   <meta charset="utf-8">
   <title>Interactions</title>
   <meta name="description" content="Demo of threejs using Web Components">
-  <link rel="stylesheet" type="text/css" href="style/main.css" />
-  <link rel="stylesheet" type="text/css" href="../dist/vr-markup.css" />
-  <script src="../dist/vr-markup.js"></script>
-  <script src="../lib/vendor/VRControls.js"></script>
-  <script src="../lib/vendor/VREffect.js"></script>
-  <!-- User defined components -->
+  <link rel="stylesheet" type="text/css" href="../style/vr-markup.css">
+  <link rel="stylesheet" type="text/css" href="style/main.css">
+  <script src="../build/vr-markup.js"></script>
+  <!-- User-defined components -->
   <script src="../components/vr-cube.js"></script>
   <script src="../components/vr-grid.js"></script>
-  <style id="vr-styles">
-    body {
-       background-color: black;
-     }
-  </style>
+  <script src="../components/vr-skysphere.js"></script>
 </head>
 
 <body>
   <vr-assets>
-    <vr-material id="highlight" type="MeshBasicMaterial" color="yellow"></vr-material>
-    <vr-material id="normal" type="MeshNormalMaterial" color="yellow"></vr-material>
+    <vr-material id="normal" color="#3399ff" metallic="0.9" roughness="0.38"></vr-material>
+    <vr-material id="highlight" color="#ffcc00" metallic="1" roughness="0.5"></vr-material>
   </vr-assets>
   <vr-scene>
-    <vr-controls></vr-controls>
-    <vr-camera position="0 1.8 20">
-      <vr-cursor position="0 0 -1" radius="0.005"></vr-cursor>
-    </vr-camera>
-    <vr-cube position="0 2 -8" material="normal" width="4" height="4" depth="4"></vr-cube>
+    <vr-controls position="0 1.8 20">
+      <vr-camera>
+        <vr-cursor position="0 0 -1" radius="0.005"></vr-cursor>
+      </vr-camera>
+    </vr-controls>
+    <vr-skysphere color="#000"></vr-skysphere>
+    <vr-cube position="0 2 -8" material="normal" width="4" height="4" depth="4" href="cube.html"></vr-cube>
     <vr-cube position="6 2 0" material="normal" width="4" height="4" depth="4"></vr-cube>
     <vr-cube position="-6 2 0" material="normal" width="4" height="4" depth="4"></vr-cube>
     <vr-grid size="50"></vr-grid>
   </vr-scene>
-  <button class="vr-button">Enter VR</button>
   <script>
-    var scene = document.querySelector('vr-scene');
-    var fsButton = document.querySelector('.vr-button');
-    fsButton.addEventListener('click', function() {
-      scene.enterVR();
-    });
-
     var cubes = document.querySelectorAll('vr-cube');
     var i;
     for (i = 0; i < cubes.length; ++i) {
       cubes[i].addEventListener('click', function(evt) {
         var cube = evt.currentTarget;
-        var material = cube.getAttribute('material');
-        // console.log(material);
+        // Toggling material.
+        cube.setAttribute('material', cube.getAttribute('material') === 'normal' ? 'highlight' : 'normal');
 
-        if (material === 'highlight') {
-          evt.currentTarget.setAttribute('material', 'normal');
-        } else {
-          evt.currentTarget.setAttribute('material', 'highlight');
+        var href = cube.getAttribute('href');
+        if (href) {
+          window.top.postMessage({type: 'navigate', data: {url: href}}, '*');
         }
       });
     }

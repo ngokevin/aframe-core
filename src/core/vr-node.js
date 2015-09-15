@@ -1,61 +1,60 @@
-var VRTags = {};
+/* global Event, HTMLElement */
 
-// Registering element
-VRTags["VR-NODE"] = true;
+require('../vr-register-element');
 
-/* exported VRNode */
-var VRNode = document.registerElement(
+/**
+ *
+ * VRNode is the base class for all the VR markup
+ * It manages loading of objects.
+ *
+ */
+
+module.exports = document.registerElement(
   'vr-node',
   {
     prototype: Object.create(
       HTMLElement.prototype,
       {
+
+        //  ----------------------------------  //
+        //   Native custom elements callbacks   //
+        //  ----------------------------------  //
+
         createdCallback: {
-          value: function() {
+          value: function () {
             var sceneEl = document.querySelector('vr-scene');
             this.sceneEl = sceneEl;
-            this.init();
-          }
-        },
-
-        init: {
-          value: function() {
-            this.load();
-          }
-        },
-
-        load: {
-          value: function() {
-            // To prevent emmitting the loaded event more than once
-            if (this.hasLoaded) { return; }
-            var event = new Event('loaded');
-            this.hasLoaded = true;
-            this.dispatchEvent(event);
-            this.onAttributeChanged();
-          }
+          },
+          writable: window.debug
         },
 
         attachedCallback: {
-          value: function() {
-            // console.log('entering the DOM :-) )');
-          }
+          value: function () { /* no-op */ },
+          writable: window.debug
         },
 
         detachedCallback: {
-          value: function() {
-            // console.log('leaving the DOM :-( )');
-          }
-        },
-
-        onAttributeChanged: {
-          value: function() { /* no-op */ }
+          value: function () { /* no-op */ },
+          writable: window.debug
         },
 
         attributeChangedCallback: {
-          value: function(name, previousValue, value) {
-            this.onAttributeChanged();
-          }
+          value: function () { /* no-op */ },
+          writable: window.debug
+        },
+
+        load: {
+          value: function () {
+            // To prevent emmitting the loaded event more than once
+            if (this.hasLoaded) { return; }
+            var attributeChangedCallback = this.attributeChangedCallback;
+            var event = new Event('loaded');
+            this.hasLoaded = true;
+            this.dispatchEvent(event);
+            if (attributeChangedCallback) { attributeChangedCallback.apply(this); }
+          },
+          writable: window.debug
         }
-    })
+      })
   }
 );

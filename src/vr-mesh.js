@@ -1,15 +1,15 @@
-/* global VRTags, VRObject */
-/* exported VRMesh */
+require('./vr-register-element');
 
-VRTags["VR-MESH"] = true;
+var THREE = require('../lib/three');
+var VRObject = require('./core/vr-object');
 
-var VRMesh = document.registerElement(
+module.exports = document.registerElement(
   'vr-mesh',
   {
     prototype: Object.create(
       VRObject.prototype, {
-        init: {
-          value: function() {
+        createdCallback: {
+          value: function () {
             var geometry = this.getGeometry();
             var material = this.getMaterial();
             this.object3D = new THREE.Mesh(geometry, material);
@@ -17,8 +17,8 @@ var VRMesh = document.registerElement(
           }
         },
 
-        onAttributeChanged: {
-          value: function() {
+        attributeChangedCallback: {
+          value: function () {
             var material = this.getMaterial();
             if (material) {
               this.object3D.material = material;
@@ -28,17 +28,17 @@ var VRMesh = document.registerElement(
         },
 
         getGeometry: {
-          value: function() {
+          value: function () {
             var geometryId = this.getAttribute('geometry');
-            var geometryEl = geometryId? document.querySelector('#' + geometryId) : undefined;
-            return (geometryEl && geometryEl.geometry) || new THREE.BoxGeometry( 200, 200, 200 );
+            var geometryEl = geometryId ? document.querySelector('#' + geometryId) : undefined;
+            return (geometryEl && geometryEl.geometry) || new THREE.BoxGeometry(200, 200, 200);
           }
         },
 
         getMaterial: {
-          value: function() {
+          value: function () {
             var materialId = this.getAttribute('material');
-            var materialEl = materialId? document.querySelector('#' + materialId) : undefined;
+            var materialEl = materialId ? document.querySelector('#' + materialId) : undefined;
             return materialEl && materialEl.material;
           }
         }
