@@ -13,54 +13,33 @@ var VRScene = module.exports = document.registerElement(
     prototype: Object.create(
       VRNode.prototype, {
         createdCallback: {
-          value: function () {
-            this.attachEventListeners();
-            this.attachFullscreenListeners();
+          value: function() {
             this.setupScene();
+            this.elementsLoaded(['vr-assets'])
+              .then(this.onElementsLoaded.bind(this));
+          }
+        },
+
+        onElementsLoaded: {
+          value: function() {
+            this.setupLoader();
+            this.resizeCanvas();
+            // It kicks off the render loop
+            this.render(performance.now());
+            this.renderLoopStarted = true;
+            this.load();
           }
         },
 
         detachedCallback: {
-          value: function () {
+          value: function() {
             this.shutdown();
           }
         },
 
         shutdown: {
-          value: function () {
+          value: function() {
             window.cancelAnimationFrame(this.animationFrameID);
-          }
-        },
-
-        attachEventListeners: {
-          value: function () {
-            var self = this;
-            var elementLoaded = this.elementLoaded.bind(this);
-            this.pendingElements = 0;
-            var assets = document.querySelector('vr-assets');
-            if (assets && !assets.hasLoaded) {
-              this.pendingElements++;
-              assets.addEventListener('loaded', elementLoaded);
-            }
-            traverseDOM(this);
-            function traverseDOM (node) {
-              // We have to wait for the element
-              // If the node it's not the scene itself
-              // and it's a VR element
-              // and the node has not loaded yet
-              if (node !== self && self.isVRNode(node) && !node.hasLoaded) {
-                attachEventListener(node);
-                self.pendingElements++;
-              }
-              node = node.firstChild;
-              while (node) {
-                traverseDOM(node);
-                node = node.nextSibling;
-              }
-            }
-            function attachEventListener (node) {
-              node.addEventListener('loaded', elementLoaded);
-            }
           }
         },
 
@@ -116,22 +95,6 @@ var VRScene = module.exports = document.registerElement(
             if (!fsElement) {
               this.renderer = this.monoRenderer;
             }
-          }
-        },
-
-        elementLoaded: {
-          value: function () {
-            this.pendingElements--;
-            // If we still need to wait for more elements
-            if (this.pendingElements > 0) { return; }
-            // If the render loop is already running
-            if (this.renderLoopStarted) { return; }
-            this.setupLoader();
-            this.resizeCanvas();
-            // It kicks off the render loop
-            this.render(performance.now());
-            this.renderLoopStarted = true;
-            this.load();
           }
         },
 

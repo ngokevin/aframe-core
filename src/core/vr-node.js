@@ -43,6 +43,43 @@ module.exports = document.registerElement(
           writable: window.debug
         },
 
+        elementsLoaded: {
+          value: function(elements) {
+            return new Promise(function(resolve) {
+              function clearLoaded(tagName) {
+                var index = elements.indexOf(tagName.toUpperCase());
+                if (index !== -1) {
+                  elements.splice(index, 1);
+                };
+
+                if (elements.length === 0) {
+                  resolve();
+                }
+              };
+
+              function loadHandler(e) {
+                clearLoaded(e.target.tagName);
+              };
+
+              elements = elements.map(function(name) {
+                return name.toUpperCase();
+              });
+
+              elements.forEach(function(tagName) {
+                var element = document.querySelector(tagName);
+
+                if (element && !element.hasLoaded) {
+                  element.addEventListener('loaded', loadHandler);
+                }
+
+                if (element.hasLoaded) {
+                  clearLoaded(tagName);
+                }
+              });
+            });
+          }
+        },
+
         load: {
           value: function () {
             // To prevent emmitting the loaded event more than once
