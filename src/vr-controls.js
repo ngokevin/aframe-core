@@ -114,6 +114,7 @@ module.exports = document.registerElement(
 
             if (hmdState && hmdState.orientation !== null) {
               rotation = this.vrControls.rotation;
+              this.hmdOrientation = true;
             } else {
               rotation = this.cameraEl.object3D.quaternion;
             }
@@ -204,6 +205,11 @@ module.exports = document.registerElement(
 
             var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
             var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+
+            // we want to lock-out any pitch when VR orientation is present.
+            if (this.hmdOrientation) {
+              movementY = 0;
+            };
 
             yawObject.rotation.y -= movementX * 0.002;
             pitchObject.rotation.x -= movementY * 0.002;
