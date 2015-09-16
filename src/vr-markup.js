@@ -20,6 +20,7 @@ require('./vr-fog');
 require('./vr-geometry');
 require('./vr-material');
 require('./vr-mesh');
+require('./vr-physics');
 
 module.exports = {
   THREE: THREE,
