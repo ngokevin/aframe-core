@@ -2,7 +2,7 @@
 
 require('../vr-register-element');
 
-var THREE = require('../../lib/three');
+var THREE = require('three');
 var VRNode = require('./vr-node');
 var VRUtils = require('../vr-utils');
 

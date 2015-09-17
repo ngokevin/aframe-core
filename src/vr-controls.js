@@ -1,4 +1,4 @@
-var THREE = require('../lib/three');
+var THREE = require('three');
 
 var VRObject = require('./core/vr-object');
 // To avoid recalculation at every mouse movement tick

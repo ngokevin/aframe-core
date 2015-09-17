@@ -1,7 +1,7 @@
 'use strict';
 module.exports = function (config) {
   config.set({
-    frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal', 'browserify'],
+    frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal'],
     browserify: {
       debug: true,
       paths: ['src']
@@ -23,7 +23,8 @@ module.exports = function (config) {
       'test/*.js'
     ],
     preprocessors: {
-      'test/*.js': ['browserify']
-    }
+      'test/*.js': ['webpack']
+    },
+    webpack: require('../webpack.config')
   });
 };

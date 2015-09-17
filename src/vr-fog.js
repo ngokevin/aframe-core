@@ -1,6 +1,6 @@
 require('./vr-register-element');
 
-var THREE = require('../lib/three');
+var THREE = require('three');
 var VRNode = require('./core/vr-node');
 
 module.exports = document.registerElement(

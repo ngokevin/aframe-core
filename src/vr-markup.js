@@ -1,11 +1,17 @@
 require('./vr-register-element');
+require('../style/vr-markup.css');
 
 var VRObject = require('./core/vr-object');
 var VRNode = require('./core/vr-node');
 
-// Exports THREE to the window object so we can
-// use three.js without alteration
-var THREE = window.THREE = require('../lib/three');
+var THREE = require('three');
+// TODO: Eventually include these only if they are needed by a component.
+THREE.Cursor = require('../lib/cursor3D')(THREE);
+THREE.Raycaster = require('../lib/vendor/Raycaster')(THREE);
+THREE.ShaderLib.pbr = require('./shaders/pbr')(THREE);
+THREE.VRControls = require('../lib/vendor/VRControls');
+THREE.VREffect = require('../lib/vendor/VREffect');
+
 var VRUtils = require('./vr-utils');
 
 require('./core/vr-camera');
