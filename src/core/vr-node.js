@@ -68,7 +68,10 @@ module.exports = document.registerElement(
 
         getAttribute: {
           value: function (attr, defaultValue) {
-            var value = HTMLElement.prototype.getAttribute.call(this, attr);
+            var getAttr = HTMLElement.prototype.getAttribute;
+            // Support both custom attribute name and data- attribute name.
+            var value = getAttr.call(this, 'data-' + attr) ||
+                        getAttr.call(this, attr);
             return VRUtils.parseAttributeString(attr, value, defaultValue);
           },
           writable: window.debug
