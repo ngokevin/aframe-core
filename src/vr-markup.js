@@ -8,11 +8,10 @@ var VRNode = require('./core/vr-node');
 var THREE = window.THREE = require('../lib/three');
 var VRUtils = require('./vr-utils');
 var VREffector = require('./core/vr-effectors');
+var VRAsset = require('./core/vr-assets');
 
 require('./core/vr-scene');
-require('./core/vr-assets');
 require('./core/vr-object');
-
 require('./vr-animation');
 require('./vr-behavior');
 require('./vr-cursor');
@@ -25,5 +24,6 @@ module.exports = {
   VRObject: VRObject,
   VRNode: VRNode,
   VREffector: VREffector,
+  VRAsset: VRAsset,
   utils: VRUtils
 };

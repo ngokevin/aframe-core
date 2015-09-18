@@ -52,6 +52,7 @@ var VRObject = module.exports = document.registerElement(
             effectors = effectors.split(/[ ,]+/)
               .map(function(id) {
                 var element = document.getElementById(id);
+                // todo: need to check if this is a instance of effector.
                 if (element === null) {
                   console.warn('[vr-object] ' + id + ' effector not found.');
                 }

@@ -35,6 +35,18 @@ module.exports = document.registerElement(
           value: {
             element: null
           }
+        },
+
+        getAsset: {
+          value: function(id) {
+            console.log('getting asset ', id);
+            var element = document.getElementById(id);
+            // todo: need to check if this is instance of asset.
+            if (element === null) {
+              console.warn('[vr-effector] ' + id + ' asset not found.');
+            }
+            return element;
+          }
         }
       }
     )
