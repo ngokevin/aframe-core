@@ -17,7 +17,7 @@ Or if you'd prefer unminified files for local development (and source maps for t
 * [`vr-markup.css`](dist/vr-markup.css)
 * [`vr-markup.js`](dist/vr-markup.js)
 
-__Also, be sure to check out the awesome [examples](examples/).__
+__Also, be sure to check out the awesome [examples at vr-components](https://github.com/mozvr/vr-components/).__
 
 
 ## Local installation
@@ -27,9 +27,12 @@ __Also, be sure to check out the awesome [examples](examples/).__
 
 ## Local development
 
+This will start a development server that serves a live-reloading bundle of
+```vr-markup.js```.
+
     npm install
     npm start
-    open http://localhost:9000/examples/
+    open http://localhost:9000/build/vr-markup.js
 
 ## Running tests
 
@@ -41,7 +44,7 @@ __Also, be sure to check out the awesome [examples](examples/).__
     git pull --rebase
     npm install
     npm start
-    open http://localhost:9000/examples/
+    open http://localhost:9000/build/vr-markup.js
 
 ## Releasing and publishing a new version to npm
 
