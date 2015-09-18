@@ -27,7 +27,7 @@ var VRObject = module.exports = document.registerElement(
             this.initAttributes();
 
             // array of attatched effectors to element
-            this.attatchedEffectors = [];
+            this.attatchedTo = [];
 
             this.updateEffectors();
 
@@ -45,29 +45,40 @@ var VRObject = module.exports = document.registerElement(
           value: function() {
 
             var effectors = this.getAttribute('effectors');
-            if (effectors) {
-              effectors = effectors.split(/[ ,]+/)
-                .map(function(id) {
-                  return document.getElementById(id);
-                });
-
-
-              // todo: check for removals
-              effectors.forEach(function(effector) {
-                if (effector) {
-                  var isAttatched = this.attatchedEffectors.indexOf(effector) !== -1 ? true : false;
-
-                  if (!isAttatched) {
-                    effector.attach(this);
-                    this.attatchedEffectors.push(effector);
-                  }
-                } else {
-                  console.warn('[vr-object] ' + id + ' effector not found.');
-                  return;
-                }
-              }.bind(this));
-
+            if (!effectors) {
+              return;
             }
+
+            effectors = effectors.split(/[ ,]+/)
+              .map(function(id) {
+                var element = document.getElementById(id);
+                if (element === null) {
+                  console.warn('[vr-object] ' + id + ' effector not found.');
+                }
+                return element;
+              });
+
+            // attach effectors
+            effectors.forEach(function(effector) {
+              if (effector) {
+                var isAttatched = this.attatchedTo.indexOf(effector) !== -1 ? true : false;
+
+                if (!isAttatched) {
+                  effector.attach(this);
+                  this.attatchedTo.push(effector);
+                }
+              }
+            }.bind(this));
+
+            // detatch effectors
+            this.attatchedTo = this.attatchedTo.filter(function(effector) {
+              var keep = effectors.indexOf(effector) === -1 ? false : true;
+              if (keep == false) {
+                effector.detach();
+              }
+              return keep;
+            });
+
           }
         },
 

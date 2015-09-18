@@ -15,11 +15,13 @@ var VRRender = document.registerElement(
             this.setupCanvas();
             this.setupRenderer();
 
-            this.elementAttatched().then(function(vrObject) {
-              console.log(vrObject, ' attatched to render ', this);
-              
+            this.addEventListener('attatched', function() {
+              console.log(this.attatchedTo.element, ' attatched to render ', this);
+
+              var attatchedElement = this.attatchedTo.element;
+
               // get camera effector
-              var camera = vrObject.attatchedEffectors.filter(function(effector) {
+              var camera = attatchedElement.attatchedTo.filter(function(effector) {
                 return effector.tagName == 'VR-CAMERA'
               })[0];
 
@@ -39,7 +41,7 @@ var VRRender = document.registerElement(
                 }
               }
 
-              var scene = this.scene = findParentScene(vrObject);
+              var scene = this.scene = findParentScene(attatchedElement);
 
               if (!scene) {
                 console.error('[vr-render] cannot render without being child of scene.');
@@ -52,7 +54,11 @@ var VRRender = document.registerElement(
               this.render(performance.now());
               this.renderLoopStarted = true;
 
-            }.bind(this));
+            });
+
+            this.addEventListener('detatched', function() {
+              this.shutdown();
+            });
 
             
             // var camera = this.camera = document.querySelector('vr-object[effectors*="camera"][effectors*="render"]')

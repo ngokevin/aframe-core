@@ -16,21 +16,33 @@ document.registerElement(
 
             this.axis = this.getAttribute('axis');
 
-            this.elementAttatched().then(function(vrObject) {
-              // attatch this camera object in effector to vr-object element.
-              console.log(vrObject, ' attatched to rotation ', this);
+            this.addEventListener('attatched', function() {
+              console.log(this.attatchedTo.element, ' attatched to rotation ', this);
 
-              this.object3D = vrObject.object3D;
+              this.object3D = this.attatchedTo.element.object3D;
 
               this.update()
-            }.bind(this));
+            });
+
+            this.addEventListener('detatched', function() {
+              this.shutdown();
+            });
           }
         },
 
         update: {
           value: function() {
             this.object3D.rotation[this.axis] += 0.01;
-            window.requestAnimationFrame(this.update.bind(this));
+            this.animationFrameID = window.requestAnimationFrame(this.update.bind(this));
+          }
+        },
+
+        shutdown: {
+          value: function() {
+            if (this.animationFrameID) {
+              console.log('shutting down');
+              window.cancelAnimationFrame(this.animationFrameID);
+            }
           }
         }
         

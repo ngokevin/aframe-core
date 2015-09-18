@@ -13,16 +13,16 @@ document.registerElement(
           value: function () {
 
             // wait for element to attatch to effector            
-            this.elementAttatched().then(function(vrObject) {
-              // attatch this camera object in effector to vr-object element.
-              console.log(vrObject, ' attatched to mesh ', this);
+            this.addEventListener('attatched', function() {
+              var attatchedElement = this.attatchedTo.element;
+              console.log(attatchedElement, ' attatched to mesh ', this);
               
               var material = this.getMaterial();
               var geometry = this.getGeometry();
 
               var mesh = this.object3D = new THREE.Mesh(geometry, material);
               
-              vrObject.object3D.add(mesh);
+              attatchedElement.object3D.add(mesh);
             }.bind(this));
           }
         },

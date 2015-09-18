@@ -11,21 +11,17 @@ document.registerElement(
       {
         createdCallback: {
           value: function () {
-
             var camera = this.object3D = new THREE.PerspectiveCamera();
-            // wait for element to attatch to effector
             
-            this.elementAttatched().then(function(vrObject) {
-              // attatch this camera object in effector to vr-object element.
-              console.log(vrObject, ' attatched to camera ', this);
-              vrObject.object3D.add(camera);
-            }.bind(this));
-            
+            this.addEventListener('attatched', function() {
+              var attatchedElement = this.attatchedTo.element;
+              console.log(attatchedElement, ' attatched to camera ', this);
 
-            // This should probably managed within vr-scene
-            // this.sceneEl.camera = camera;
-            // this.saveInitialValues();
+              this.object3d = attatchedElement.object3D;
+              this.object3d.add(camera);
+            });
             
+            // this.saveInitialValues();
           }
         },
 

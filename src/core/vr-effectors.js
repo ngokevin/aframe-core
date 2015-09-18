@@ -21,28 +21,21 @@ module.exports = document.registerElement(
           }
         },
 
+        detach: {
+          value: function() {
+            if (this.attatchedTo.element) {
+              var evt = new Event('detatched');
+              this.dispatchEvent(evt);
+              this.attatchedTo.element = null;
+            }
+          }
+        },
+
         attatchedTo: {
           value: {
             element: null
           }
-        },
-
-        // returns promise that resolves with element attatched to effector.
-        elementAttatched: {
-          value: function() {
-            return new Promise(function(resolve) {
-              var attatched = this.attatchedTo.element;
-              if (attatched) {
-                resolve(attatched)
-              } else {
-                this.addEventListener('attatched', function(e) {
-                  resolve(this.attatchedTo.element);
-                })  
-              }
-            }.bind(this));
-          }
         }
-
       }
     )
   }
