@@ -229,6 +229,39 @@ var VRScene = module.exports = document.registerElement(
               cameraEl.setAttribute('far', 10000);
               this.appendChild(cameraEl);
             }
+
+            // Set up default light which depends on the camera.
+            var self = this;
+            cameraEl.addEventListener('loaded', function () {
+              self.setupDefaultLight(cameraEl);
+            });
+          }
+        },
+
+        /**
+         * One light above and to the left of the camera.
+         *
+         * @returns {Object} A three.js Light object.
+         */
+        defaultLight: {
+          enumerable: false,
+          get: function () {
+            var defaultLight = new THREE.PointLight(0xcccccc, 2.0);
+            defaultLight.position.set(-5, 5, 0);
+            return defaultLight;
+          }
+        },
+
+        /**
+         * Sets up default light that will be removed if user adds his/her own
+         * light to the scene. Mainly meant for devs that may not understand
+         * why their objects might be dark in an unlit scene.
+         *
+         * @param {Object} attr cameraEl The camera custom element.
+         */
+        setupDefaultLight: {
+          value: function (cameraEl) {
+            cameraEl.object3D.add(this.defaultLight);
           }
         },
 
@@ -286,6 +319,13 @@ var VRScene = module.exports = document.registerElement(
         add: {
           value: function (el) {
             if (!el.object3D) { return; }
+
+            if (this.defaultLight && el.object3D instanceof THREE.Light) {
+              // Remove default lights if user defines his/her own.
+              this.camera.remove(this.defaultLight);
+              this.defaultLight = null;
+            }
+
             this.object3D.add(el.object3D);
           }
         },
