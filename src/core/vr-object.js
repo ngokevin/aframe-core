@@ -67,7 +67,9 @@ var VRObject = module.exports = document.registerElement(
 
         detachedCallback: {
           value: function () {
-            this.parentEl.remove(this);
+            if (this.parentEl) {
+              this.parentEl.remove(this);
+            }
           },
           writable: window.debug
         },

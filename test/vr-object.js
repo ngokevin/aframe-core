@@ -124,8 +124,7 @@ suite('vr-object', function () {
     });
 
     teardown(function () {
-      this.el = null;
-      this.parent = null;
+      document.body.removeChild(this.parent);
     });
 
     test('is called after appending the element', function (done) {
@@ -168,13 +167,10 @@ suite('vr-object', function () {
       parent.appendChild(el);
       el.parentEl = {remove: function () {}};
       this.parentMock = this.sinon.mock(el.parentEl);
-    //   mock.expects('save')
-    // .once()
     });
 
     teardown(function () {
-      this.el = null;
-      this.parent = null;
+      document.body.removeChild(this.parent);
     });
 
     test('is called after removing the element from the parent', function (done) {
@@ -196,6 +192,18 @@ suite('vr-object', function () {
         done();
       });
     });
+
+    test('The object3D is not removed from the parent if it does not exist', function (done) {
+      var el = this.el;
+      var parentMock = this.parentMock.expects('remove').never();
+      this.el.parentEl = null;
+      this.parent.removeChild(el);
+      process.nextTick(function () {
+        parentMock.verify();
+        sinon.assert.called(VRObject.prototype.detachedCallback);
+        done();
+      });
+    });
   });
 
   suite('add', function () {
@@ -203,11 +211,6 @@ suite('vr-object', function () {
       var parent = this.parent = document.createElement('vr-object');
       this.objectMock = this.sinon.mock(parent.object3D);
       this.child = document.createElement('vr-object');
-    });
-
-    teardown(function () {
-      this.parent = null;
-      this.child = null;
     });
 
     test('is called the child object is added to the parent object3D', function () {
@@ -239,11 +242,6 @@ suite('vr-object', function () {
       var child = this.child = document.createElement('vr-object');
       sinon.stub(parent, 'add');
       parent.appendChild(child);
-    });
-
-    teardown(function () {
-      this.parent = null;
-      this.child = null;
     });
 
     test('add is called if the child has a parent and has not been added already', function () {
@@ -318,8 +316,7 @@ suite('vr-object', function () {
     });
 
     teardown(function () {
-      this.parent = null;
-      this.child = null;
+      this.el = null;
     });
 
     test('position is set when passing an object', function () {
