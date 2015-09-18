@@ -7,10 +7,11 @@ var VRNode = require('./core/vr-node');
 // use three.js without alteration
 var THREE = window.THREE = require('../lib/three');
 var VRUtils = require('./vr-utils');
+var VREffector = require('./core/vr-effectors');
 
-require('./core/vr-camera');
 require('./core/vr-scene');
 require('./core/vr-assets');
+require('./core/vr-object');
 
 require('./vr-animation');
 require('./vr-behavior');
@@ -19,11 +20,11 @@ require('./vr-cursor');
 require('./vr-fog');
 require('./vr-geometry');
 require('./vr-material');
-require('./vr-mesh');
 
 module.exports = {
   THREE: THREE,
   VRObject: VRObject,
   VRNode: VRNode,
+  VREffector: VREffector,
   utils: VRUtils
 };

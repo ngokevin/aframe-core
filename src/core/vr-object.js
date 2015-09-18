@@ -1,7 +1,6 @@
 require('../vr-register-element');
 
 var THREE = require('../../lib/three');
-var VRNode = require('./vr-node');
 var VRUtils = require('../vr-utils');
 
 /**
@@ -14,7 +13,7 @@ var VRObject = module.exports = document.registerElement(
   'vr-object',
   {
     prototype: Object.create(
-      VRNode.prototype,
+      HTMLElement.prototype,
       {
 
         //  ----------------------------------  //
@@ -24,7 +23,35 @@ var VRObject = module.exports = document.registerElement(
         createdCallback: {
           value: function () {
             this.object3D = new THREE.Object3D();
-            this.load();
+            
+            this.initAttributes();
+
+            var effectors = this.getAttribute('effectors');
+            if (effectors) {
+              effectors = effectors.split(/[ ,]+/);  
+
+              effectors.forEach(function(id) {
+                var effector = document.getElementById(id);
+                if (effector) {
+                  effector.attach(this);
+                  if (!this.effectors) {
+                    this.effectors = [];
+                  }
+                  this.effectors.push(effector);
+                } else {
+                  console.warn('[vr-object] ' + id + ' effector not found.');
+                  return;
+                }
+              }.bind(this));
+            }
+
+
+            // attach to parent element
+            var parent = this.parentElement;
+            parent.object3D.add(this.object3D);
+
+            var attributeChangedCallback = this.attributeChangedCallback;
+            if (attributeChangedCallback) { attributeChangedCallback.apply(this); }
           },
           writable: window.debug
         },
@@ -94,22 +121,22 @@ var VRObject = module.exports = document.registerElement(
           writable: window.debug
         },
 
-        load: {
-          value: function () {
-            // To prevent calling load more than once
-            if (this.hasLoaded) { return; }
-            // Handle to the associated DOM element
-            this.object3D.el = this;
-            // It attaches itself to the threejs parent object3D
-            this.addToParent();
-            // It sets default values on the attributes if they're not defined
-            this.initAttributes();
-            // Setup animations if there's any
-            this.addAnimations();
-            VRNode.prototype.load.call(this);
-          },
-          writable: window.debug
-        },
+        // load: {
+        //   value: function () {
+        //     // To prevent calling load more than once
+        //     if (this.hasLoaded) { return; }
+        //     // Handle to the associated DOM element
+        //     this.object3D.el = this;
+        //     // It attaches itself to the threejs parent object3D
+        //     //this.addToParent();
+        //     // It sets default values on the attributes if they're not defined
+        //     this.initAttributes();
+        //     // Setup animations if there's any
+        //     //this.addAnimations();
+        //     //VRNode.prototype.load.call(this);
+        //   },
+        //   writable: window.debug
+        // },
 
         setAttribute: {
           value: function (attr, val) {

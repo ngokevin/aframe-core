@@ -1,27 +1,89 @@
-/* global MessageChannel, performance, Promise */
+var VRMarkup = require('vr-markup');
 
-require('../vr-register-element');
+var THREE = VRMarkup.THREE;
+var VREffector = VRMarkup.VREffector;
 
-var TWEEN = require('tween.js');
-
-var THREE = require('../../lib/three');
-var VRNode = require('./vr-node');
-
-var VRScene = module.exports = document.registerElement(
-  'vr-scene',
+var VRRender = document.registerElement(
+  'vr-render',
   {
     prototype: Object.create(
-      VRNode.prototype, {
+      VREffector.prototype, {
         createdCallback: {
           value: function () {
             // this.attachEventListeners();
             // this.attachFullscreenListeners();
+            this.setupCanvas();
+            this.setupRenderer();
+
+            this.elementAttatched().then(function(vrObject) {
+              console.log(vrObject, ' attatched to render ', this);
+              
+              // get camera effector
+              var camera = vrObject.effectors.filter(function(effector) {
+                return effector.tagName == 'VR-CAMERA'
+              })[0];
+
+              if (!camera) {
+                console.error('[vr-render] cannot render without vr-camera effector.');
+                return;
+              }
+
+              this.camera = camera.object3D;
+
+              // walk up the tree till we get a scene context
+              function findParentScene(element) {
+                if (element.object3D.type !== 'Scene') {
+                  return findParentScene(element.parentElement);
+                } else {
+                  return element.object3D;
+                }
+              }
+
+              var scene = this.scene = findParentScene(vrObject);
+
+              if (!scene) {
+                console.error('[vr-render] cannot render without being child of scene.');
+                return false;
+              }
+
+              window.addEventListener('resize', this.resizeCanvas.bind(this), false);
+              this.resizeCanvas()
+              // kick off rendering
+              this.render(performance.now());
+              this.renderLoopStarted = true;
+
+            }.bind(this));
+
             
-            // this.setupCanvas();
-            this.object3D = (VRScene && VRScene.scene) || new THREE.Scene();
+            // var camera = this.camera = document.querySelector('vr-object[effectors*="camera"][effectors*="render"]')
+            
+            // if (!camera) {
+            //   console.error('[vr-render] No element found with camera and render effectors set.');
+            //   return;
+            // };
+
+
+            // camera.loaded.then(function() {
+            //   console.log('camera loaded, lets kick off rendering');
+            // });
+            
+            //this.getElementsByEffectors(['render','camera']);
+            
+            // this.camera
+            // window.addEventListener('resize', this.resizeCanvas.bind(this), false);
+            // this.resizeCanvas();
+
+            //this.context
             
             
-            // this.setupRenderer();
+
+
+
+
+            // It kicks off the render loop
+            //this.render(performance.now());
+            //this.renderLoopStarted = true;
+            //this.load();
           }
         },
 
@@ -91,22 +153,15 @@ var VRScene = module.exports = document.registerElement(
           value: function () {
             var self = this;
             window.addEventListener('message', function (e) {
-              if (e.data) {
-                switch (e.data.type) {
-                  case 'loaderReady':
-                    self.insideLoader = true;
-                    self.removeEnterVrButton();
+              if (e.data && e.data.type === 'fullscreen') {
+                switch (e.data.data) {
+                  // set renderer with fullscreen VR enter and exit.
+                  case 'enter':
+                    self.setStereoRenderer();
                     break;
-                  case 'fullscreen':
-                    switch (e.data.data) {
-                      // Set renderer with fullscreen VR enter and exit.
-                      case 'enter':
-                        self.setStereoRenderer();
-                        break;
-                      case 'exit':
-                        self.setMonoRenderer();
-                        break;
-                    }
+                  case 'exit':
+                    self.setMonoRenderer();
+                    break;
                 }
               }
             });
@@ -131,37 +186,29 @@ var VRScene = module.exports = document.registerElement(
           }
         },
 
-        elementLoaded: {
-          value: function () {
-            this.pendingElements--;
-            // If we still need to wait for more elements
-            if (this.pendingElements > 0) { return; }
-            // If the render loop is already running
-            if (this.renderLoopStarted) { return; }
-            this.setupLoader();
-            this.resizeCanvas();
-            // It kicks off the render loop
-            this.render(performance.now());
-            this.renderLoopStarted = true;
-            this.load();
-          }
-        },
+        // elementLoaded: {
+        //   value: function () {
+        //     this.pendingElements--;
+        //     // If we still need to wait for more elements
+        //     if (this.pendingElements > 0) { return; }
+        //     // If the render loop is already running
+        //     if (this.renderLoopStarted) { return; }
+        //     this.setupLoader();
+        //     // this.resizeCanvas();
+        //     // // It kicks off the render loop
+        //     // this.render(performance.now());
+        //     // this.renderLoopStarted = true;
+        //     // this.load();
+        //   }
+        // },
 
         createEnterVrButton: {
           value: function () {
-            var vrButton = this.vrButton = document.createElement('button');
+            var vrButton = document.createElement('button');
             vrButton.textContent = 'Enter VR';
             vrButton.className = 'vr-button';
             document.body.appendChild(vrButton);
             vrButton.addEventListener('click', this.enterVR.bind(this));
-          }
-        },
-
-        removeEnterVrButton: {
-          value: function () {
-            if (this.vrButton) {
-              this.vrButton.parentNode.removeChild(this.vrButton);
-            }
           }
         },
 
@@ -181,9 +228,8 @@ var VRScene = module.exports = document.registerElement(
         setupLoader: {
           value: function () {
             var self = this;
-
-            // Inside loader, check for VR mode before kicking off render loop.
-            if (self.insideIframe) {
+            // inside loader, check for vr mode before kicking off render loop.
+            if (window.top !== window.self) {
               self.attachMessageListeners();
               self.vrLoaderMode().then(function (isVr) {
                 if (isVr) {
@@ -193,9 +239,7 @@ var VRScene = module.exports = document.registerElement(
                 }
                 window.top.postMessage({type: 'ready'}, '*');
               });
-            }
-
-            if (!self.insideLoader) {
+            } else {
               self.createEnterVrButton();
             }
           }
@@ -224,7 +268,7 @@ var VRScene = module.exports = document.registerElement(
         //     // The canvas where the WebGL context will be painted
         //     // this.setupCanvas();
         //     // The three.js renderer setup
-        //     // this.setupRenderer();
+        //     // this.`nderer();
         //     // three.js camera setup
         //     // this.setupCamera();
         //     // cursor camera setup
@@ -236,7 +280,6 @@ var VRScene = module.exports = document.registerElement(
           value: function () {
             var canvas = this.canvas = document.createElement('canvas');
             this.appendChild(canvas);
-            window.addEventListener('resize', this.resizeCanvas.bind(this), false);
           }
         },
 
@@ -274,16 +317,16 @@ var VRScene = module.exports = document.registerElement(
           value: function () {
             var canvas = this.canvas;
             var renderer = this.renderer = this.monoRenderer =
-              (VRScene && VRScene.renderer) || // To prevent creating multiple rendering contexts
+              (VRRender && VRRender.renderer) || // To prevent creating multiple rendering contexts
               new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.sortObjects = false;
-            VRScene.renderer = renderer;
+            VRRender.renderer = renderer;
 
             this.stereoRenderer = new THREE.VREffect(renderer);
 
-            this.object3D = (VRScene && VRScene.scene) || new THREE.Scene();
-            VRScene.scene = this.object3D;
+            // this.object3D = (VRScene && VRScene.scene) || new THREE.Scene();
+            // VRScene.scene = this.object3D;
           }
         },
 
@@ -327,12 +370,12 @@ var VRScene = module.exports = document.registerElement(
 
         render: {
           value: function (t) {
-            TWEEN.update(t);
+            // TWEEN.update(t);
             // Updates behaviors
-            this.behaviors.forEach(function (behavior) {
-              behavior.update(t);
-            });
-            this.renderer.render(this.object3D, this.camera);
+            // this.behaviors.forEach(function (behavior) {
+            //   behavior.update(t);
+            // });
+            this.renderer.render(this.scene, this.camera);
             this.animationFrameID = window.requestAnimationFrame(this.render.bind(this));
           }
         }
