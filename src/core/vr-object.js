@@ -45,7 +45,7 @@ var VRObject = module.exports = document.registerElement(
           value: function() {
 
             var effectors = this.getAttribute('effectors');
-            if (!effectors) {
+            if (!effectors || effectors === '') {
               return;
             }
 
@@ -87,7 +87,6 @@ var VRObject = module.exports = document.registerElement(
             if (change == 'effectors') {
               this.updateEffectors();
             };
-
 
             this.object3D = this.object3D || new THREE.Object3D();
             // Position

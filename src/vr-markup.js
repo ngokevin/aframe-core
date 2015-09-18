@@ -15,7 +15,6 @@ require('./core/vr-object');
 
 require('./vr-animation');
 require('./vr-behavior');
-require('./vr-controls');
 require('./vr-cursor');
 require('./vr-fog');
 require('./vr-geometry');
