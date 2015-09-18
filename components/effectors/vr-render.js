@@ -19,7 +19,7 @@ var VRRender = document.registerElement(
               console.log(vrObject, ' attatched to render ', this);
               
               // get camera effector
-              var camera = vrObject.effectors.filter(function(effector) {
+              var camera = vrObject.attatchedEffectors.filter(function(effector) {
                 return effector.tagName == 'VR-CAMERA'
               })[0];
 

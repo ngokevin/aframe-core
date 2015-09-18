@@ -26,25 +26,10 @@ var VRObject = module.exports = document.registerElement(
             
             this.initAttributes();
 
-            var effectors = this.getAttribute('effectors');
-            if (effectors) {
-              effectors = effectors.split(/[ ,]+/);  
+            // array of attatched effectors to element
+            this.attatchedEffectors = [];
 
-              effectors.forEach(function(id) {
-                var effector = document.getElementById(id);
-                if (effector) {
-                  effector.attach(this);
-                  if (!this.effectors) {
-                    this.effectors = [];
-                  }
-                  this.effectors.push(effector);
-                } else {
-                  console.warn('[vr-object] ' + id + ' effector not found.');
-                  return;
-                }
-              }.bind(this));
-            }
-
+            this.updateEffectors();
 
             // attach to parent element
             var parent = this.parentElement;
@@ -56,8 +41,43 @@ var VRObject = module.exports = document.registerElement(
           writable: window.debug
         },
 
+        updateEffectors: {
+          value: function() {
+
+            var effectors = this.getAttribute('effectors');
+            if (effectors) {
+              effectors = effectors.split(/[ ,]+/)
+                .map(function(id) {
+                  return document.getElementById(id);
+                });
+
+
+              // todo: check for removals
+              effectors.forEach(function(effector) {
+                if (effector) {
+                  var isAttatched = this.attatchedEffectors.indexOf(effector) !== -1 ? true : false;
+
+                  if (!isAttatched) {
+                    effector.attach(this);
+                    this.attatchedEffectors.push(effector);
+                  }
+                } else {
+                  console.warn('[vr-object] ' + id + ' effector not found.');
+                  return;
+                }
+              }.bind(this));
+
+            }
+          }
+        },
+
         attributeChangedCallback: {
-          value: function () {
+          value: function (change) {
+            if (change == 'effectors') {
+              this.updateEffectors();
+            };
+
+
             this.object3D = this.object3D || new THREE.Object3D();
             // Position
             var position = this.getAttribute('position', {x: 0, y: 0, z: 0});
