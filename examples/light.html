@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Cube</title>
+    <meta name="description" content="Cube vr-component">
+    <script src="http://localhost:9001/build/vr-components.js"></script>
+  </head>
+  <body>
+    <vr-assets>
+      <vr-geometry id="cube-geo" width="5" height="5" depth="5"></vr-geometry>
+      <vr-material id="cube-mat" shader="phong" color="#559955"
+                   specular="#55FF55"></vr-material>
+    </vr-assets>
+
+    <vr-scene>
+      <vr-controls position="0 1.8 20">
+        <vr-camera>
+          <vr-light type="directional" intensity="1.5" color="#CCCCCC"
+                    position="-10 10 0"></vr-light>
+        </vr-camera>
+      </vr-controls>
+
+      <vr-grid></vr-grid>
+
+      <vr-mesh geometry="cube-geo" material="cube-mat" position="-10 -2 -10"
+               rotation="0 45 0"></vr-mesh>
+      <vr-mesh geometry="cube-geo" material="cube-mat" position="0 0 0"
+               rotation="45 0 0"></vr-mesh>
+      <vr-mesh geometry="cube-geo" material="cube-mat" position="10 2 10"
+               rotation="0 0 45"></vr-mesh>
+    </vr-scene>
+  </body>
+</html>

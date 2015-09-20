@@ -241,15 +241,20 @@ var VRScene = module.exports = document.registerElement(
 
         setupCamera: {
           value: function () {
-            var cameraEl = this.querySelector('vr-camera');
+            var self = this;
+            var cameraEl = self.querySelector('vr-camera');
             // If there's not a user-defined camera, we create one.
             if (!cameraEl) {
               cameraEl = document.createElement('vr-camera');
               cameraEl.setAttribute('fov', 45);
               cameraEl.setAttribute('near', 1);
               cameraEl.setAttribute('far', 10000);
-              this.appendChild(cameraEl);
+              self.appendChild(cameraEl);
             }
+
+            cameraEl.addEventListener('loaded', function () {
+              self.camera = cameraEl.object3D;
+            });
           }
         },
 
