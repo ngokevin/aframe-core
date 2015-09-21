@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "browserify": "^11.0.1",
-    "budo": "mattdesl/budo#6372153",
+    "budo": "^5.0.0-beta4",
     "crass": "^0.7.7",
     "garnish": "^3.2.0",
     "gh-pages": "^0.4.0",
@@ -63,7 +63,7 @@
     ]
   },
   "engines": {
-    "node" : ">= 0.12.7",
+    "node": ">= 0.12.7",
     "npm": ">= 2.12.1"
   }
 }
