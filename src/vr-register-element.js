@@ -110,7 +110,7 @@ function wrapMethod (obj, methodName, derivedObj, baseObj) {
     baseMethod.apply(this, arguments);
     return derivedMethod.apply(this, arguments);
   };
-  obj[methodName] = {value: wrapperMethod, writable: window.debug};
+  obj[methodName] = {value: wrapperMethod, writable: window.debug, enumerable: window.debug};
 }
 
 /**
@@ -124,7 +124,7 @@ function copyProperties (source, destination) {
   var props = Object.getOwnPropertyNames(source);
   props.forEach(function (prop) {
     if (!destination[prop]) {
-      destination[prop] = {value: source[prop], writable: window.debug};
+      destination[prop] = {value: source[prop], writable: window.debug, enumerable: window.debug};
     }
   });
 }

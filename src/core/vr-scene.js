@@ -3,8 +3,8 @@
 require('../vr-register-element');
 
 var TWEEN = require('tween.js');
-
 var THREE = require('../../lib/three');
+
 var VRNode = require('./vr-node');
 
 var VRScene = module.exports = document.registerElement(
@@ -17,19 +17,30 @@ var VRScene = module.exports = document.registerElement(
             this.attachEventListeners();
             this.attachFullscreenListeners();
             this.setupScene();
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         detachedCallback: {
           value: function () {
             this.shutdown();
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         shutdown: {
           value: function () {
+            var assets = this.assets;
+            var canvas = this.canvas;
             window.cancelAnimationFrame(this.animationFrameID);
-          }
+            // Cleaning the DOM up
+            if (canvas && canvas.parentNode) { canvas.parentNode.removeChild(this.canvas); }
+            if (assets && assets.parentNode) { assets.parentNode.removeChild(assets); }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         attachEventListeners: {
@@ -37,7 +48,7 @@ var VRScene = module.exports = document.registerElement(
             var self = this;
             var elementLoaded = this.elementLoaded.bind(this);
             this.pendingElements = 0;
-            var assets = document.querySelector('vr-assets');
+            var assets = this.assets = document.querySelector('vr-assets');
             if (assets && !assets.hasLoaded) {
               this.pendingElements++;
               assets.addEventListener('loaded', elementLoaded);
@@ -61,7 +72,9 @@ var VRScene = module.exports = document.registerElement(
             function attachEventListener (node) {
               node.addEventListener('loaded', elementLoaded);
             }
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         isVRNode: {
@@ -79,26 +92,24 @@ var VRScene = module.exports = document.registerElement(
             // expects: The nodes have the proper prototype attached to them at
             // any time during their lifecycle.
             return node.tagName && node.tagName.indexOf('VR-') === 0;
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         attachMessageListeners: {
           value: function () {
             var self = this;
             window.addEventListener('message', function (e) {
+              var isFullscreen;
               if (e.data && e.data.type === 'fullscreen') {
-                switch (e.data.data) {
-                  // set renderer with fullscreen VR enter and exit.
-                  case 'enter':
-                    self.setStereoRenderer();
-                    break;
-                  case 'exit':
-                    self.setMonoRenderer();
-                    break;
-                }
+                isFullscreen = e.data.data === 'enter';
+                self.enableStereo(isFullscreen);
               }
             });
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         attachFullscreenListeners: {
@@ -106,7 +117,9 @@ var VRScene = module.exports = document.registerElement(
             // handle fullscreen changes
             document.addEventListener('mozfullscreenchange', this.fullscreenChange.bind(this));
             document.addEventListener('webkitfullscreenchange', this.fullscreenChange.bind(this));
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         fullscreenChange: {
@@ -116,7 +129,9 @@ var VRScene = module.exports = document.registerElement(
             if (!fsElement) {
               this.renderer = this.monoRenderer;
             }
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         elementLoaded: {
@@ -132,7 +147,9 @@ var VRScene = module.exports = document.registerElement(
             this.render(performance.now());
             this.renderLoopStarted = true;
             this.load();
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         createEnterVrButton: {
@@ -142,7 +159,9 @@ var VRScene = module.exports = document.registerElement(
             vrButton.className = 'vr-button';
             document.body.appendChild(vrButton);
             vrButton.addEventListener('click', this.enterVR.bind(this));
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         // returns a promise that resolves to true if loader is in VR mode.
@@ -155,7 +174,9 @@ var VRScene = module.exports = document.registerElement(
                 resolve(!!message.data.data.isVr);
               };
             });
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         setupLoader: {
@@ -165,31 +186,27 @@ var VRScene = module.exports = document.registerElement(
             if (window.top !== window.self) {
               self.attachMessageListeners();
               self.vrLoaderMode().then(function (isVr) {
-                if (isVr) {
-                  self.setStereoRenderer();
-                } else {
-                  self.setMonoRenderer();
-                }
+                self.enableStereo(isVr);
                 window.top.postMessage({type: 'ready'}, '*');
               });
             } else {
               self.createEnterVrButton();
             }
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
-        setStereoRenderer: {
-          value: function () {
-            this.renderer = this.stereoRenderer;
-            this.resizeCanvas();
-          }
-        },
-
-        setMonoRenderer: {
-          value: function () {
-            this.renderer = this.monoRenderer;
-            this.resizeCanvas();
-          }
+        enableStereo: {
+          value: function (enable) {
+            var previous = this.renderer;
+            var current = this.renderer = enable ? this.stereoRenderer : this.monoRenderer;
+            if (previous !== current) {
+              this.resizeCanvas();
+            }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         setupScene: {
@@ -204,9 +221,9 @@ var VRScene = module.exports = document.registerElement(
             this.setupRenderer();
             // three.js camera setup
             this.setupCamera();
-            // cursor camera setup
-            this.setupCursor();
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         setupCanvas: {
@@ -215,7 +232,9 @@ var VRScene = module.exports = document.registerElement(
             canvas.classList.add('vr-canvas');
             document.body.appendChild(canvas);
             window.addEventListener('resize', this.resizeCanvas.bind(this), false);
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         setupCamera: {
@@ -229,23 +248,18 @@ var VRScene = module.exports = document.registerElement(
               cameraEl.setAttribute('far', 10000);
               this.appendChild(cameraEl);
             }
-          }
-        },
-
-        setupCursor: {
-          value: function () {
-            var cursor = this.querySelector('vr-cursor');
-            if (cursor) {
-              this.cursor = cursor;
-            }
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         enterVR: {
           value: function () {
-            this.renderer = this.stereoRenderer;
-            this.stereoRenderer.setFullScreen(true);
-          }
+            this.enableStereo(true);
+            this.renderer.setFullScreen(true);
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         setupRenderer: {
@@ -262,7 +276,9 @@ var VRScene = module.exports = document.registerElement(
 
             this.object3D = (VRScene && VRScene.scene) || new THREE.Scene();
             VRScene.scene = this.object3D;
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         resizeCanvas: {
@@ -280,27 +296,35 @@ var VRScene = module.exports = document.registerElement(
             camera.updateProjectionMatrix();
             // Notify the renderer of the size change
             this.renderer.setSize(canvas.width, canvas.height);
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         add: {
           value: function (el) {
             if (!el.object3D) { return; }
             this.object3D.add(el.object3D);
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         addBehavior: {
           value: function (behavior) {
             this.behaviors.push(behavior);
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         remove: {
           value: function (el) {
             if (!el.object3D) { return; }
             this.object3D.remove(el.object3D);
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         },
 
         render: {
@@ -312,7 +336,9 @@ var VRScene = module.exports = document.registerElement(
             });
             this.renderer.render(this.object3D, this.camera);
             this.animationFrameID = window.requestAnimationFrame(this.render.bind(this));
-          }
+          },
+          writable: window.debug,
+          enumerable: window.debug
         }
       }
     )
