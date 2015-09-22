@@ -11,16 +11,15 @@ document.registerElement(
       {
         createdCallback: {
           value: function () {
-
             var material = this.getMaterial();
-            
             var id = this.getAttribute('geometry');
+            var geometry;
             var geometryAsset = null;
 
             if (id) {
               geometryAsset = this.getAsset(id);
             }
-            
+
             if (geometryAsset === null) {
               geometry = this.getDefaultGeometry();
             } else {
@@ -29,11 +28,10 @@ document.registerElement(
 
             var mesh = this.object3D = new THREE.Mesh(geometry, material);
 
-            // wait for element to attatch to effector            
-            this.addEventListener('attatched', function() {
+            // wait for element to attatch to effector
+            this.addEventListener('attatched', function () {
               var attatchedElement = this.attatchedTo.element;
               console.log(attatchedElement, ' attatched to mesh ', this);
-
               attatchedElement.object3D.add(mesh);
             }.bind(this));
           }
@@ -70,8 +68,6 @@ document.registerElement(
             return material;
           }
         }
-
-        
       }
     )
   }

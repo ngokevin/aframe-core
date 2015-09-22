@@ -1,4 +1,4 @@
-/* global Event, HTMLElement */
+/* global HTMLElement */
 
 require('../vr-register-element');
 
@@ -10,14 +10,6 @@ module.exports = document.registerElement(
       {
         createdCallback: {
           value: function () {
-            var attributeChangedCallback = this.attributeChangedCallback;
-            if (attributeChangedCallback) { attributeChangedCallback.apply(this); }
-          }
-        },
-
-        attributeChangedCallback: {
-          value: function (change) {
-            
           }
         }
       }

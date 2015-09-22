@@ -1,6 +1,4 @@
 var VRMarkup = require('vr-markup');
-
-var THREE = VRMarkup.THREE;
 var VREffector = VRMarkup.VREffector;
 
 document.registerElement(
@@ -16,36 +14,35 @@ document.registerElement(
 
             this.axis = this.getAttribute('axis');
 
-            this.addEventListener('attatched', function() {
+            this.addEventListener('attatched', function () {
               console.log(this.attatchedTo.element, ' attatched to rotation ', this);
 
               this.object3D = this.attatchedTo.element.object3D;
 
-              this.update()
+              this.update();
             });
 
-            this.addEventListener('detatched', function() {
+            this.addEventListener('detatched', function () {
               this.shutdown();
             });
           }
         },
 
         update: {
-          value: function() {
+          value: function () {
             this.object3D.rotation[this.axis] += 0.01;
             this.animationFrameID = window.requestAnimationFrame(this.update.bind(this));
           }
         },
 
         shutdown: {
-          value: function() {
+          value: function () {
             if (this.animationFrameID) {
               console.log('shutting down');
               window.cancelAnimationFrame(this.animationFrameID);
             }
           }
         }
-        
       }
     )
   }

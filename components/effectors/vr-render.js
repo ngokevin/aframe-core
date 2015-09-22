@@ -1,3 +1,4 @@
+/* global performance, MessageChannel */
 var VRMarkup = require('vr-markup');
 
 var THREE = VRMarkup.THREE;
@@ -15,14 +16,15 @@ var VRRender = document.registerElement(
             this.setupCanvas();
             this.setupRenderer();
 
-            this.addEventListener('attatched', function() {
+            this.addEventListener('attatched', function () {
               console.log(this.attatchedTo.element, ' attatched to render ', this);
 
               var attatchedElement = this.attatchedTo.element;
 
+              // todo: this dependencies should be managed by effector prototype ie: importEffector(['camera'])
               // get camera effector
-              var camera = attatchedElement.attatchedTo.filter(function(effector) {
-                return effector.tagName == 'VR-CAMERA'
+              var camera = attatchedElement.attatchedTo.filter(function (effector) {
+                return effector.tagName === 'VR-CAMERA';
               })[0];
 
               if (!camera) {
@@ -33,7 +35,8 @@ var VRRender = document.registerElement(
               this.camera = camera.object3D;
 
               // walk up the tree till we get a scene context
-              function findParentScene(element) {
+              // todo: part of vr-object?
+              function findParentScene (element) {
                 if (element.object3D.type !== 'Scene') {
                   return findParentScene(element.parentElement);
                 } else {
@@ -49,47 +52,15 @@ var VRRender = document.registerElement(
               }
 
               window.addEventListener('resize', this.resizeCanvas.bind(this), false);
-              this.resizeCanvas()
+              this.resizeCanvas();
               // kick off rendering
               this.render(performance.now());
               this.renderLoopStarted = true;
-
             });
 
-            this.addEventListener('detatched', function() {
+            this.addEventListener('detatched', function () {
               this.shutdown();
             });
-
-            
-            // var camera = this.camera = document.querySelector('vr-object[effectors*="camera"][effectors*="render"]')
-            
-            // if (!camera) {
-            //   console.error('[vr-render] No element found with camera and render effectors set.');
-            //   return;
-            // };
-
-
-            // camera.loaded.then(function() {
-            //   console.log('camera loaded, lets kick off rendering');
-            // });
-            
-            //this.getElementsByEffectors(['render','camera']);
-            
-            // this.camera
-            // window.addEventListener('resize', this.resizeCanvas.bind(this), false);
-            // this.resizeCanvas();
-
-            //this.context
-            
-            
-
-
-
-
-            // It kicks off the render loop
-            //this.render(performance.now());
-            //this.renderLoopStarted = true;
-            //this.load();
           }
         },
 

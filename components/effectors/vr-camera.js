@@ -11,16 +11,15 @@ document.registerElement(
       {
         createdCallback: {
           value: function () {
-            var camera = this.object3D = new THREE.PerspectiveCamera();
-            
-            this.addEventListener('attatched', function() {
+            this.object3D = new THREE.PerspectiveCamera();
+
+            this.addEventListener('attatched', function () {
               var attatchedElement = this.attatchedTo.element;
               console.log(attatchedElement, ' attatched to camera ', this);
 
-              this.object3d = attatchedElement.object3D;
-              this.object3d.add(camera);
+              attatchedElement.object3D.add(this.object3D);
             });
-            
+
             // this.saveInitialValues();
           }
         },

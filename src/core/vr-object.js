@@ -1,3 +1,5 @@
+/* global HTMLElement */
+
 require('../vr-register-element');
 
 var THREE = require('../../lib/three');
@@ -23,7 +25,7 @@ var VRObject = module.exports = document.registerElement(
         createdCallback: {
           value: function () {
             this.object3D = new THREE.Object3D();
-            
+
             this.initAttributes();
 
             // array of attatched effectors to element
@@ -31,9 +33,9 @@ var VRObject = module.exports = document.registerElement(
 
             this.updateEffectors();
 
-            // attach to parent element
-            var parent = this.parentElement;
-            parent.object3D.add(this.object3D);
+            // attach to parent object3D
+            var parent = this.parentElement.object3D;
+            parent.add(this.object3D);
 
             var attributeChangedCallback = this.attributeChangedCallback;
             if (attributeChangedCallback) { attributeChangedCallback.apply(this); }
@@ -42,15 +44,14 @@ var VRObject = module.exports = document.registerElement(
         },
 
         updateEffectors: {
-          value: function() {
-
+          value: function () {
             var effectors = this.getAttribute('effectors');
             if (!effectors || effectors === '') {
               return;
             }
 
             effectors = effectors.split(/[ ,]+/)
-              .map(function(id) {
+              .map(function (id) {
                 var element = document.getElementById(id);
                 // todo: need to check if this is a instance of effector.
                 if (element === null) {
@@ -60,34 +61,29 @@ var VRObject = module.exports = document.registerElement(
               });
 
             // attach effectors
-            effectors.forEach(function(effector) {
-              if (effector) {
-                var isAttatched = this.attatchedTo.indexOf(effector) !== -1 ? true : false;
-
-                if (!isAttatched) {
-                  effector.attach(this);
-                  this.attatchedTo.push(effector);
-                }
+            effectors.forEach(function (effector) {
+              if (effector && this.attatchedTo.indexOf(effector) === -1) {
+                effector.attach(this);
+                this.attatchedTo.push(effector);
               }
             }.bind(this));
 
             // detatch effectors
-            this.attatchedTo = this.attatchedTo.filter(function(effector) {
-              var keep = effectors.indexOf(effector) === -1 ? false : true;
-              if (keep == false) {
+            this.attatchedTo = this.attatchedTo.filter(function (effector) {
+              var keep = effectors.indexOf(effector) !== -1;
+              if (!keep) {
                 effector.detach();
               }
               return keep;
             });
-
           }
         },
 
         attributeChangedCallback: {
           value: function (change) {
-            if (change == 'effectors') {
+            if (change === 'effectors') {
               this.updateEffectors();
-            };
+            }
 
             this.object3D = this.object3D || new THREE.Object3D();
             // Position
@@ -169,12 +165,12 @@ var VRObject = module.exports = document.registerElement(
         //   writable: window.debug
         // },
 
-        setAttribute: {
-          value: function (attr, val) {
-            return VRNode.prototype.setAttribute.call(this, attr, val);
-          },
-          writable: window.debug
-        },
+        // setAttribute: {
+        //   value: function (attr, val) {
+        //     return VRNode.prototype.setAttribute.call(this, attr, val);
+        //   },
+        //   writable: window.debug
+        // },
 
         remove: {
           value: function (el) {
@@ -217,11 +213,21 @@ var VRObject = module.exports = document.registerElement(
         },
 
         getAttribute: {
-          value: function (attrName, defaultValue) {
-            return VRNode.prototype.getAttribute.call(this, attrName, defaultValue);
+          value: function (attr, defaultValue) {
+            var value = HTMLElement.prototype.getAttribute.call(this, attr);
+            return VRUtils.parseAttributeString(attr, value, defaultValue);
+          },
+          writable: window.debug
+        },
+
+        setAttribute: {
+          value: function (attr, value) {
+            value = VRUtils.stringifyAttributeValue(value);
+            HTMLElement.prototype.setAttribute.call(this, attr, value);
           },
           writable: window.debug
         }
+
       })
   }
 );

@@ -21,7 +21,6 @@ document.registerElement(
             return new THREE.SphereGeometry(radius, 20, 20);
           }
         }
-        
       }
     )
   }

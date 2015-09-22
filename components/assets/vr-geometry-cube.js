@@ -23,7 +23,6 @@ document.registerElement(
             return new THREE.BoxGeometry(width, height, depth);
           }
         }
-        
       }
     )
   }

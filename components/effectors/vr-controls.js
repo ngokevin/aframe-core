@@ -23,16 +23,13 @@ document.registerElement(
             this.yawObject.position.y = 10;
             this.yawObject.add(this.pitchObject);
 
-            this.setAttribute('locomotion', true);
-            this.setAttribute('mouse-look', true);
-
+            this.locomotion = true;
+            this.mouseLook = true;
+            this.controlType = 'walk';
 
             // wait for element to attatch to effector
-            this.addEventListener('attatched', function() {
-              var attatchedElement = this.attatchedElement = this.attatchedTo.element;
-
-              // todo: fix this quick hack
-              this.cameraEl = this.attatchedElement;
+            this.addEventListener('attatched', function () {
+              this.attatchedElement = this.attatchedTo.element;
 
               this.attachMouseKeyboardListeners();
               this.attachVrControls();
@@ -40,7 +37,7 @@ document.registerElement(
               this.update();
             }.bind(this));
 
-            this.addEventListener('detatched', function() {
+            this.addEventListener('detatched', function () {
               this.shutdown();
             });
           }
@@ -48,16 +45,9 @@ document.registerElement(
 
         attributeChangedCallback: {
           value: function () {
-            var locomotion = this.getAttribute('locomotion');
-            var mouseLook = this.getAttribute('mouse-look');
-            var hmdOrientation = this.getAttribute('use-hmd-orientation');
-            var hmdPosition = this.getAttribute('use-hmd-position');
-            var moveType = this.getAttribute('type');
-            this.moveType = moveType === "fly" ? "fly" : "walk";
-            this.locomotion = locomotion === 'true';
-            this.mouseLook = mouseLook === 'true';
-            this.hmdOrientation = hmdOrientation === "true"? true : false;
-            this.hmdPosition = hmdPosition === "true"? true : false;
+            this.locomotion = this.getAttribute('locomotion', true);
+            this.mouseLook = this.getAttribute('mouselook', true);
+            this.controlType = this.getAttribute('type', 'walk');
           }
         },
 
@@ -66,7 +56,7 @@ document.registerElement(
             var velocity = this.velocity;
             var easing = this.easing;
             var acceleration = this.acceleration;
-            var cameraEl = this.cameraEl;
+            var attatchedElement = this.attatchedElement;
             var pitchObject = this.pitchObject;
             var yawObject = this.yawObject;
             var time = window.performance.now();
@@ -77,16 +67,16 @@ document.registerElement(
             velocity.x -= velocity.x * easing * delta;
             velocity.z -= velocity.z * easing * delta;
 
-            var position = cameraEl.getAttribute('position');
+            var position = attatchedElement.getAttribute('position');
             var x = position.x || 0;
             var y = position.y || 0;
             var z = position.z || 0;
 
-            var rotation = cameraEl.getAttribute('rotation');
+            var rotation = attatchedElement.getAttribute('rotation');
             var rotZ = rotation.z || 0;
 
             if (this.locomotion) {
-              if (keys[81]) { //rotate left
+              if (keys[81]) { // rotate left
                 yawObject.rotation.y += 0.05;
               }
               if (keys[69]) { // rotate right
@@ -110,11 +100,12 @@ document.registerElement(
               this.vrControls.resetSensor();
             }
 
-            //console.log('velocity', velocity);
-
             // forward, lateral and vertical movements.
-            var fwdX = fwdZ = latX = latZ = vertY = 0;
-            var rotation;
+            var fwdX = 0;
+            var fwdZ = 0;
+            var latX = 0;
+            var latZ = 0;
+            var vertY = 0;
 
             // hmd state
             var hmdState = this.vrControls.state;
@@ -123,43 +114,46 @@ document.registerElement(
               rotation = this.vrControls.rotation;
               this.hmdOrientation = true;
             } else {
-              rotation = this.cameraEl.object3D.quaternion;
+              rotation = attatchedElement.object3D.quaternion;
             }
 
             // apply rotation to forward and lateral vectors.
             var fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(rotation);
             var lat = new THREE.Vector3(1, 0, 0).applyQuaternion(rotation);
+            switch (this.controlType) {
+              case 'walk':
+                // we want to rotate around Y, so we reset to 0 value.
+                fwd.y = 0;
 
-            if (this.moveType === "walk") {
-              // we want to rotate around Y, so we reset to 0 value.
-              fwd.y = 0;
+                // calculate corodinate for forward movement
+                var fwdRot = Math.atan2(fwd.x, -fwd.z);
+                fwdX = Math.sin(fwdRot);
+                fwdZ = -Math.cos(fwdRot);
 
-              // calculate corodinate for forward movement
-              var fwdRot = Math.atan2(fwd.x, -fwd.z);
-              fwdX = Math.sin(fwdRot);
-              fwdZ = -Math.cos(fwdRot);
+                // calculate coordinates for lateral movement
+                var latRot = Math.atan2(lat.x, -lat.z);
+                latX = Math.sin(latRot);
+                latZ = -Math.cos(latRot);
 
-              // calculate coordinates for lateral movement
-              var latRot = Math.atan2(lat.x, -lat.z);
-              latX = Math.sin(latRot);
-              latZ = -Math.cos(latRot);
+                // apply velocity
+                fwdX *= -velocity.z;
+                fwdZ *= -velocity.z;
+                latX *= velocity.x;
+                latZ *= velocity.x;
+                break;
+              case 'fly':
+                // apply velocity
+                fwd.multiplyScalar(-velocity.z);
+                lat.multiplyScalar(velocity.x);
 
-              // apply velocity
-              fwdX *= -velocity.z;
-              fwdZ *= -velocity.z;
-              latX *= velocity.x;
-              latZ *= velocity.x;
-            }
-
-            if (this.moveType === 'fly') {
-              // apply velocity
-              fwd.multiplyScalar(-velocity.z);
-              lat.multiplyScalar(velocity.x);
-
-              fwdX = fwd.x;
-              latX = lat.x;
-              vertY = fwd.y + lat.y;
-              fwdZ = fwd.z + lat.z;
+                fwdX = fwd.x;
+                latX = lat.x;
+                vertY = fwd.y + lat.y;
+                fwdZ = fwd.z + lat.z;
+                break;
+              default:
+                console.warn('[vr-control] invalid control type specifified.');
+                break;
             }
 
             position = {
@@ -168,13 +162,14 @@ document.registerElement(
               z: z + fwdZ + latZ
             };
 
-            cameraEl.setAttribute('rotation', {
+            rotation = {
               x: THREE.Math.radToDeg(pitchObject.rotation.x),
               y: THREE.Math.radToDeg(yawObject.rotation.y),
               z: rotZ
-            });
+            };
 
-            cameraEl.setAttribute('position', position);
+            attatchedElement.setAttribute('rotation', rotation);
+            attatchedElement.setAttribute('position', position);
 
             this.vrControls.update();
 
@@ -183,9 +178,8 @@ document.registerElement(
         },
 
         shutdown: {
-          value: function() {
+          value: function () {
             if (this.animationFrameID) {
-              console.log('shutting down');
               window.cancelAnimationFrame(this.animationFrameID);
             }
           }
@@ -193,7 +187,6 @@ document.registerElement(
 
         attachMouseKeyboardListeners: {
           value: function () {
-            
             // Keyboard events
             window.addEventListener('keydown', this.onKeyDown.bind(this), false);
             window.addEventListener('keyup', this.onKeyUp.bind(this), false);
@@ -206,7 +199,7 @@ document.registerElement(
         },
 
         attachVrControls: {
-          value: function() {
+          value: function () {
             this.vrControls = new THREE.VRControls(this.attatchedElement.object3D);
           }
         },
@@ -226,7 +219,7 @@ document.registerElement(
             // we want to lock-out any pitch when VR orientation is present.
             if (this.hmdOrientation) {
               movementY = 0;
-            };
+            }
 
             yawObject.rotation.y -= movementX * 0.002;
             pitchObject.rotation.x -= movementY * 0.002;
@@ -259,8 +252,6 @@ document.registerElement(
             this.keys[event.keyCode] = false;
           }
         }
-
-
       }
     )
   }

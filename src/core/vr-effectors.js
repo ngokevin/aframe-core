@@ -14,7 +14,7 @@ module.exports = document.registerElement(
         },
 
         attach: {
-          value: function(element) {
+          value: function (element) {
             this.attatchedTo.element = element;
             var evt = new Event('attatched');
             this.dispatchEvent(evt);
@@ -22,7 +22,7 @@ module.exports = document.registerElement(
         },
 
         detach: {
-          value: function() {
+          value: function () {
             if (this.attatchedTo.element) {
               var evt = new Event('detatched');
               this.dispatchEvent(evt);
@@ -38,8 +38,7 @@ module.exports = document.registerElement(
         },
 
         getAsset: {
-          value: function(id) {
-            console.log('getting asset ', id);
+          value: function (id) {
             var element = document.getElementById(id);
             // todo: need to check if this is instance of asset.
             if (element === null) {
