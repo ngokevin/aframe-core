@@ -24,59 +24,12 @@ var VRObject = module.exports = document.registerElement(
 
         createdCallback: {
           value: function () {
-            this.object3D = new THREE.Object3D();
-
-            this.initAttributes();
-
-            // array of attatched effectors to element
+            // Array of effectors attatched to element
             this.attatchedTo = [];
 
-            this.updateEffectors();
-
-            // attach to parent object3D
-            var parent = this.parentElement.object3D;
-            parent.add(this.object3D);
-
-            var attributeChangedCallback = this.attributeChangedCallback;
-            if (attributeChangedCallback) { attributeChangedCallback.apply(this); }
+            this.initAttributes();
           },
           writable: window.debug
-        },
-
-        updateEffectors: {
-          value: function () {
-            var effectors = this.getAttribute('effectors');
-            if (!effectors || effectors === '') {
-              return;
-            }
-
-            effectors = effectors.split(/[ ,]+/)
-              .map(function (id) {
-                var element = document.getElementById(id);
-                // todo: need to check if this is a instance of effector.
-                if (element === null) {
-                  console.warn('[vr-object] ' + id + ' effector not found.');
-                }
-                return element;
-              });
-
-            // attach effectors
-            effectors.forEach(function (effector) {
-              if (effector && this.attatchedTo.indexOf(effector) === -1) {
-                effector.attach(this);
-                this.attatchedTo.push(effector);
-              }
-            }.bind(this));
-
-            // detatch effectors
-            this.attatchedTo = this.attatchedTo.filter(function (effector) {
-              var keep = effectors.indexOf(effector) !== -1;
-              if (!keep) {
-                effector.detach();
-              }
-              return keep;
-            });
-          }
         },
 
         attributeChangedCallback: {
@@ -109,12 +62,8 @@ var VRObject = module.exports = document.registerElement(
 
         attachedCallback: {
           value: function () {
-            // When creating an element from JS is not guaranteed to have
-            // a parent after initialization. It's up to the arbitrary
-            // JS to attach the element to the DOM. We cover this
-            // case here.
-            if (!this.hasLoaded) { return; }
             this.addToParent();
+            this.updateEffectors();
           },
           writable: window.debug
         },
@@ -126,51 +75,63 @@ var VRObject = module.exports = document.registerElement(
           writable: window.debug
         },
 
-        add: {
-          value: function (el) {
-            if (!el.object3D) {
-              VRUtils.error("Trying to add an object3D that doesn't exist");
+        updateEffectors: {
+          value: function () {
+            if (!this.addedToParent) {
+              return;
             }
-            this.object3D.add(el.object3D);
-          },
-          writable: window.debug
+
+            var effectors = this.getAttribute('effectors');
+
+            if (!effectors || effectors === '') {
+              // detatch all effectors
+              this.attatchedTo.forEach(function (effector) {
+                effector.detach();
+              });
+              this.attatchedTo = [];
+              return;
+            }
+
+            effectors = effectors.split(/[ ,]+/)
+              .map(function (id) {
+                var element = document.getElementById(id);
+                if (element === null) {
+                  console.warn('[vr-object] ' + id + ' effector not found.');
+                }
+                return element;
+              });
+
+            // attach effectors
+            effectors.forEach(function (effector) {
+              if (effector && this.attatchedTo.indexOf(effector) === -1) {
+                effector.attach(this);
+                this.attatchedTo.push(effector);
+              }
+            }.bind(this));
+
+            // detatch effectors
+            this.attatchedTo = this.attatchedTo.filter(function (effector) {
+              var keep = effectors.indexOf(effector) !== -1;
+              if (!keep) {
+                effector.detach();
+              }
+              return keep;
+            });
+          }
         },
 
         addToParent: {
           value: function () {
-            var parent = this.parentEl = this.parentNode;
-            var attachedToParent = this.attachedToParent;
-            if (!parent || attachedToParent) { return; }
-            // To prevent an object to attach itself multiple times to the parent
-            this.attachedToParent = true;
-            parent.add(this);
+            // attach to parent object3D
+            var parent = this.parentElement.object3D;
+            if (parent === undefined) {
+              return;
+            }
+            parent.add(this.object3D);
+            this.addedToParent = true;
           },
           writable: window.debug
         },
-
-        // load: {
-        //   value: function () {
-        //     // To prevent calling load more than once
-        //     if (this.hasLoaded) { return; }
-        //     // Handle to the associated DOM element
-        //     this.object3D.el = this;
-        //     // It attaches itself to the threejs parent object3D
-        //     //this.addToParent();
-        //     // It sets default values on the attributes if they're not defined
-        //     this.initAttributes();
-        //     // Setup animations if there's any
-        //     //this.addAnimations();
-        //     //VRNode.prototype.load.call(this);
-        //   },
-        //   writable: window.debug
-        // },
-
-        // setAttribute: {
-        //   value: function (attr, val) {
-        //     return VRNode.prototype.setAttribute.call(this, attr, val);
-        //   },
-        //   writable: window.debug
-        // },
 
         remove: {
           value: function (el) {

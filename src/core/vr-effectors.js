@@ -16,6 +16,7 @@ module.exports = document.registerElement(
         attach: {
           value: function (element) {
             this.attatchedTo.element = element;
+            console.log(this, 'attatched to ', element);
             var evt = new Event('attatched');
             this.dispatchEvent(evt);
           }
@@ -24,6 +25,7 @@ module.exports = document.registerElement(
         detach: {
           value: function () {
             if (this.attatchedTo.element) {
+              console.log(this, 'detatched from ', this.attatchedTo.element);
               var evt = new Event('detatched');
               this.dispatchEvent(evt);
               this.attatchedTo.element = null;

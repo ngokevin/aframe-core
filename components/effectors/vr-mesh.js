@@ -30,10 +30,12 @@ document.registerElement(
 
             // wait for element to attatch to effector
             this.addEventListener('attatched', function () {
-              var attatchedElement = this.attatchedTo.element;
-              console.log(attatchedElement, ' attatched to mesh ', this);
-              attatchedElement.object3D.add(mesh);
-            }.bind(this));
+              this.attatchedTo.element.object3D.add(mesh);
+            });
+
+            this.addEventListener('detatched', function () {
+              mesh.parent.remove(mesh);
+            });
           }
         },
 

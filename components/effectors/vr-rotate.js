@@ -10,15 +10,11 @@ document.registerElement(
         createdCallback: {
           value: function () {
             this.object3D = null;
-            // wait for element to attatch to effector
 
             this.axis = this.getAttribute('axis');
 
             this.addEventListener('attatched', function () {
-              console.log(this.attatchedTo.element, ' attatched to rotation ', this);
-
               this.object3D = this.attatchedTo.element.object3D;
-
               this.update();
             });
 
@@ -28,6 +24,7 @@ document.registerElement(
           }
         },
 
+        // todo: optionally allow registering of update functions to another component.
         update: {
           value: function () {
             this.object3D.rotation[this.axis] += 0.01;
@@ -38,7 +35,6 @@ document.registerElement(
         shutdown: {
           value: function () {
             if (this.animationFrameID) {
-              console.log('shutting down');
               window.cancelAnimationFrame(this.animationFrameID);
             }
           }

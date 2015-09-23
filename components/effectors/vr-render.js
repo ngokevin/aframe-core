@@ -11,56 +11,53 @@ var VRRender = document.registerElement(
       VREffector.prototype, {
         createdCallback: {
           value: function () {
-            // this.attachEventListeners();
-            // this.attachFullscreenListeners();
             this.setupCanvas();
             this.setupRenderer();
 
-            this.addEventListener('attatched', function () {
-              console.log(this.attatchedTo.element, ' attatched to render ', this);
+            this.addEventListener('attatched', this.onElementCreated.bind(this));
 
-              var attatchedElement = this.attatchedTo.element;
+            this.addEventListener('detatched', this.shutdown.bind(this));
+          }
+        },
 
-              // todo: this dependencies should be managed by effector prototype ie: importEffector(['camera'])
-              // get camera effector
-              var camera = attatchedElement.attatchedTo.filter(function (effector) {
-                return effector.tagName === 'VR-CAMERA';
-              })[0];
+        onElementCreated: {
+          value: function () {
+            var attatchedElement = this.attatchedTo.element;
 
-              if (!camera) {
-                console.error('[vr-render] cannot render without vr-camera effector.');
-                return;
+            // todo: this dependencies should be managed by effector prototype ie: importEffector(['camera'])
+            // get camera effector
+            var camera = attatchedElement.attatchedTo.filter(function (effector) {
+              return effector.tagName === 'VR-CAMERA';
+            })[0];
+
+            if (!camera) {
+              console.error('[vr-render] cannot render without vr-camera effector.');
+              return;
+            }
+            this.camera = camera.object3D;
+
+            // walk up the tree till we get a scene context
+            // todo: part of vr-object?
+            function findParentScene (element) {
+              if (element.object3D.type !== 'Scene') {
+                return findParentScene(element.parentElement);
+              } else {
+                return element.object3D;
               }
+            }
 
-              this.camera = camera.object3D;
+            var scene = this.scene = findParentScene(attatchedElement);
 
-              // walk up the tree till we get a scene context
-              // todo: part of vr-object?
-              function findParentScene (element) {
-                if (element.object3D.type !== 'Scene') {
-                  return findParentScene(element.parentElement);
-                } else {
-                  return element.object3D;
-                }
-              }
+            if (!scene) {
+              console.error('[vr-render] cannot render without being child of scene.');
+              return false;
+            }
 
-              var scene = this.scene = findParentScene(attatchedElement);
-
-              if (!scene) {
-                console.error('[vr-render] cannot render without being child of scene.');
-                return false;
-              }
-
-              window.addEventListener('resize', this.resizeCanvas.bind(this), false);
-              this.resizeCanvas();
-              // kick off rendering
-              this.render(performance.now());
-              this.renderLoopStarted = true;
-            });
-
-            this.addEventListener('detatched', function () {
-              this.shutdown();
-            });
+            window.addEventListener('resize', this.resizeCanvas.bind(this), false);
+            this.resizeCanvas();
+            // kick off rendering
+            this.render(performance.now());
+            this.renderLoopStarted = true;
           }
         },
 
@@ -73,56 +70,6 @@ var VRRender = document.registerElement(
         shutdown: {
           value: function () {
             window.cancelAnimationFrame(this.animationFrameID);
-          }
-        },
-
-        // attachEventListeners: {
-        //   value: function () {
-        //     var self = this;
-        //     var elementLoaded = this.elementLoaded.bind(this);
-        //     this.pendingElements = 0;
-        //     var assets = document.querySelector('vr-assets');
-        //     if (assets && !assets.hasLoaded) {
-        //       this.pendingElements++;
-        //       assets.addEventListener('loaded', elementLoaded);
-        //     }
-        //     traverseDOM(this);
-        //     function traverseDOM (node) {
-        //       // We have to wait for the element
-        //       // If the node it's not the scene itself
-        //       // and it's a VR element
-        //       // and the node has not loaded yet
-        //       if (node !== self && self.isVRNode(node) && !node.hasLoaded) {
-        //         attachEventListener(node);
-        //         self.pendingElements++;
-        //       }
-        //       node = node.firstChild;
-        //       while (node) {
-        //         traverseDOM(node);
-        //         node = node.nextSibling;
-        //       }
-        //     }
-        //     function attachEventListener (node) {
-        //       node.addEventListener('loaded', elementLoaded);
-        //     }
-        //   }
-        // },
-
-        isVRNode: {
-          value: function (node) {
-            // To check if a DOM elemnt is a VR element
-            // We should be checking for the prototype like this
-            // if (VRNode.prototype.isPrototypeOf(node))
-            // Safari and Chrome doesn't seem to have the proper
-            // prototype attached to the node before the createdCallback
-            // function is called. To determine that an element is a VR
-            // related node we check if the tag name starts with VR-
-            // This is fragile. We have to understand why the behaviour between
-            // firefox and the other browsers
-            // is not consistent. Firefox is the only one that behaves as one
-            // expects: The nodes have the proper prototype attached to them at
-            // any time during their lifecycle.
-            return node.tagName && node.tagName.indexOf('VR-') === 0;
           }
         },
 
@@ -162,22 +109,6 @@ var VRRender = document.registerElement(
             }
           }
         },
-
-        // elementLoaded: {
-        //   value: function () {
-        //     this.pendingElements--;
-        //     // If we still need to wait for more elements
-        //     if (this.pendingElements > 0) { return; }
-        //     // If the render loop is already running
-        //     if (this.renderLoopStarted) { return; }
-        //     this.setupLoader();
-        //     // this.resizeCanvas();
-        //     // // It kicks off the render loop
-        //     // this.render(performance.now());
-        //     // this.renderLoopStarted = true;
-        //     // this.load();
-        //   }
-        // },
 
         createEnterVrButton: {
           value: function () {
@@ -236,52 +167,12 @@ var VRRender = document.registerElement(
           }
         },
 
-        // setupScene: {
-        //   value: function () {
-        //     // this.behaviors = this.querySelectorAll('vr-controls');
-        //     // // querySelectorAll returns a NodeList that it's not a normal array
-        //     // // We need to convert
-        //     // this.behaviors = Array.prototype.slice.call(this.behaviors);
-        //     // The canvas where the WebGL context will be painted
-        //     // this.setupCanvas();
-        //     // The three.js renderer setup
-        //     // this.`nderer();
-        //     // three.js camera setup
-        //     // this.setupCamera();
-        //     // cursor camera setup
-        //     // this.setupCursor();
-        //   }
-        // },
-
         setupCanvas: {
           value: function () {
             var canvas = this.canvas = document.createElement('canvas');
             this.appendChild(canvas);
           }
         },
-
-        // setupCamera: {
-        //   value: function () {
-        //     var cameraEl = this.querySelector('vr-camera');
-        //     // If there's not a user-defined camera, we create one.
-        //     if (!cameraEl) {
-        //       cameraEl = document.createElement('vr-camera');
-        //       cameraEl.setAttribute('fov', 45);
-        //       cameraEl.setAttribute('near', 1);
-        //       cameraEl.setAttribute('far', 10000);
-        //       this.appendChild(cameraEl);
-        //     }
-        //   }
-        // },
-
-        // setupCursor: {
-        //   value: function () {
-        //     var cursor = this.querySelector('vr-cursor');
-        //     if (cursor) {
-        //       this.cursor = cursor;
-        //     }
-        //   }
-        // },
 
         enterVR: {
           value: function () {
@@ -301,9 +192,6 @@ var VRRender = document.registerElement(
             VRRender.renderer = renderer;
 
             this.stereoRenderer = new THREE.VREffect(renderer);
-
-            // this.object3D = (VRScene && VRScene.scene) || new THREE.Scene();
-            // VRScene.scene = this.object3D;
           }
         },
 
@@ -347,11 +235,6 @@ var VRRender = document.registerElement(
 
         render: {
           value: function (t) {
-            // TWEEN.update(t);
-            // Updates behaviors
-            // this.behaviors.forEach(function (behavior) {
-            //   behavior.update(t);
-            // });
             this.renderer.render(this.scene, this.camera);
             this.animationFrameID = window.requestAnimationFrame(this.render.bind(this));
           }

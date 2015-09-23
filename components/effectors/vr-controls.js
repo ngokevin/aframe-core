@@ -213,8 +213,8 @@ document.registerElement(
 
             if (!mouseDown || !this.mouseLook) { return; }
 
-            var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-            var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+            var movementX = event.movementX || event.mozMovementX || 0;
+            var movementY = event.movementY || event.mozMovementY || 0;
 
             // we want to lock-out any pitch when VR orientation is present.
             if (this.hmdOrientation) {

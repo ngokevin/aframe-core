@@ -15,12 +15,10 @@ document.registerElement(
 
             this.addEventListener('attatched', function () {
               var attatchedElement = this.attatchedTo.element;
-              console.log(attatchedElement, ' attatched to camera ', this);
-
               attatchedElement.object3D.add(this.object3D);
             });
 
-            // this.saveInitialValues();
+            this.saveInitialValues();
           }
         },
 
