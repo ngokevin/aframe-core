@@ -26,7 +26,7 @@ var VRObject = module.exports = document.registerElement(
           value: function () {
             // Array of effectors attatched to element
             this.attatchedTo = [];
-
+            this.object3D = new THREE.Object3D();
             this.initAttributes();
           },
           writable: window.debug
@@ -38,7 +38,6 @@ var VRObject = module.exports = document.registerElement(
               this.updateEffectors();
             }
 
-            this.object3D = this.object3D || new THREE.Object3D();
             // Position
             var position = this.getAttribute('position', {x: 0, y: 0, z: 0});
 
