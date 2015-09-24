@@ -4,7 +4,8 @@ module.exports = function (config) {
     frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal', 'browserify'],
     browserify: {
       debug: true,
-      paths: ['src']
+      paths: ['src'],
+      transform: [['browserify-shader', {parameterize: true}]]
     },
     browsers: ['firefox_latest'],
     customLaunchers: {
