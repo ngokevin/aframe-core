@@ -18,6 +18,7 @@ require('./vr-controls');
 require('./vr-cursor');
 require('./vr-fog');
 require('./vr-geometry');
+require('./vr-light');
 require('./vr-material');
 require('./vr-mesh');
 
