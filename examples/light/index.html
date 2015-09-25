@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Light</title>
+    <meta name="description" content="Light vr-markup">
+    <link rel="stylesheet" type="text/css" href="../../style/vr-markup.css">
+    <link rel="stylesheet" type="text/css" href="../_style/main.css">
+    <script src="../../build/vr-markup.js"></script>
+  </head>
+  <body>
+    <vr-assets>
+      <vr-geometry id="cube-geo" width="5" height="5"
+                   depth="5"></vr-geometry>
+      <vr-material id="cube-mat" shader="phong" color="#559955"
+                   specular="#55FF55"></vr-material>
+
+      <vr-geometry id="sphere-geo" primitive="sphere" radius="1">
+      </vr-geometry>
+      <vr-material id="sphere-mat" shader="phong" color="#5555AA">
+      </vr-material>
+    </vr-assets>
+
+    <vr-scene>
+      <vr-controls position="2 1.8 30">
+        <vr-camera>
+          <vr-light type="spot" position="-5 5 0"></vr-light>
+        </vr-camera>
+      </vr-controls>
+
+      <vr-mesh geometry="cube-geo" material="cube-mat" position="-10 -2 -10"
+               rotation="0 45 0"></vr-mesh>
+      <vr-mesh geometry="cube-geo" material="cube-mat" position="0 0 0"
+               rotation="45 0 0"></vr-mesh>
+      <vr-mesh geometry="cube-geo" material="cube-mat" position="10 2 10"
+               rotation="0 0 45"></vr-mesh>
+
+      <vr-mesh id="light-source" geometry="sphere-geo" material="sphere-mat"
+               position="0 2 20">
+        <vr-light type="point" intensity="5.0" color="#0000AA"></vr-light>
+      </vr-mesh>
+    </vr-scene>
+
+    <script>
+      var light = document.getElementById('light-source');
+
+      var rads = 0;
+      var step = Math.PI / 2 / 60;
+
+      light.addEventListener('loaded', function () {
+        // Orbit the lightY about the y-axis.
+        function orbitLight() {
+          requestAnimationFrame(orbitLight);
+
+          rads += step;
+          light.setAttribute('position', {
+            x: 20 * Math.cos(rads),
+            y: 2,
+            z: 20 * Math.sin(rads)
+          });
+        }
+        orbitLight();
+      });
+    </script>
+  </body>
+</html>
