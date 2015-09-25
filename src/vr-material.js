@@ -3,50 +3,128 @@ require('./vr-register-element');
 var THREE = require('../lib/three');
 var VRNode = require('./core/vr-node');
 
+var DEFAULTS = {
+  color: '#CCC',
+  metallic: 0.5,
+  lightIntensity: 7.001,
+  roughness: 1.0
+};
+
 module.exports = document.registerElement(
   'vr-material',
   {
     prototype: Object.create(
       VRNode.prototype, {
         createdCallback: {
+          value: function () {}
+        },
+
+        attachedCallback: {
           value: function () {
-            this.material = this.setupMaterial();
+            this.shaderType = '';
+            this.material = this.getMaterial();
             this.load();
           }
         },
 
         attributeChangedCallback: {
-          value: function () {
-            var color = this.getAttribute('color') || Math.random() * 0xffffff;
-            this.roughness = this.getAttribute('roughness', 1.0);
-            this.metallic = this.getAttribute('metallic', 0.5);
+          value: function (attr, oldVal, newVal) {
+            if (!newVal) { return; }
 
-            this.lightIntensity = 7.001;
-            color = new THREE.Color(color);
-            this.color = new THREE.Vector3(color.r, color.g, color.b);
-            this.updateMaterial();
+            if (attr === 'color') {
+              newVal = new THREE.Color(newVal);
+            }
+
+            if (this.shaderType === 'pbr') {
+              // Update PBR material.
+              if (attr === 'color') {
+                attr = 'baseColor';
+                newVal = new THREE.Vector3(newVal.r, newVal.g, newVal.b);
+              }
+              this.material.uniforms[attr].value = newVal;
+            } else {
+              // Update three.js material.
+              var attrWhitelist = ['color', 'shininess', 'specular'];
+              if (attrWhitelist.indexOf(attr) !== -1) {
+                this.material[attr] = newVal;
+              }
+            }
           }
         },
 
-        updateMaterial: {
+        getColor: {
           value: function () {
-            var material = this.material;
-            material.uniforms.baseColor.value = this.color;
-            material.uniforms.roughness.value = this.roughness;
-            material.uniforms.metallic.value = this.metallic;
-            material.uniforms.lightIntensity.value = this.lightIntensity;
+            return new THREE.Color(this.getAttribute('color', DEFAULTS.color));
           }
         },
 
-        setupMaterial: {
+        getLightIntensity: {
           value: function () {
-            // Shader parameters
-            var baseColor = new THREE.Vector3(0.5, 0.5, 0.5);
-            var roughness = 1.0;
-            var metallic = 0.5;
-            var lightIntensity = 7.001;
+            return this.getAttribute('intensity', DEFAULTS.lightIntensity);
+          }
+        },
 
-            // See comments of the function ComputeEnvColor for the explanations on this hug number of cubemaps.
+        getMetallic: {
+          value: function () {
+            return this.getAttribute('metallic', DEFAULTS.metallic);
+          }
+        },
+
+        getRoughness: {
+          value: function () {
+            return this.getAttribute('roughness', DEFAULTS.roughness);
+          }
+        },
+
+        getSpecular: {
+          value: function () {
+            return this.getAttribute('specular', DEFAULTS.color);
+          }
+        },
+
+        getMaterial: {
+          value: function () {
+            var shaderType = this.getAttribute('shader');
+            if (shaderType) {
+              shaderType = shaderType.toLowerCase();
+            }
+            this.shaderType = shaderType;
+
+            switch (shaderType) {
+              case 'basic': {
+                return new THREE.MeshBasicMaterial({
+                  color: this.getColor()
+                });
+              }
+              case 'phong': {
+                return new THREE.MeshPhongMaterial({
+                  color: this.getColor(),
+                  specular: this.getSpecular()
+                });
+              }
+              case 'lambert': {
+                return new THREE.MeshLambertMaterial({
+                  color: this.getColor()
+                });
+              }
+              default: {
+                // Default to PBR.
+                this.shaderType = 'pbr';
+                return this.getPBRMaterial({
+                  color: this.getColor(),
+                  lightIntensity: this.getLightIntensity(),
+                  metallic: this.getMetallic(),
+                  roughness: this.getRoughness()
+                });
+              }
+            }
+          }
+        },
+
+        getPBRMaterial: {
+          value: function (params) {
+            // See comments of the function ComputeEnvColor for the
+            // explanations on this hug number of cubemaps.
             // Cube Map mip 0
             var path = 'images/pbr/maskonaive_m00_c0';
             var format = '.png';
@@ -119,7 +197,7 @@ module.exports = document.registerElement(
               uniforms: {
                 baseColor: {
                   type: 'v3',
-                  value: baseColor
+                  value: params.color
                 },
 
                 envMap0: {
@@ -154,17 +232,17 @@ module.exports = document.registerElement(
 
                 roughness: {
                   type: 'f',
-                  value: roughness
+                  value: params.roughness
                 },
 
                 metallic: {
                   type: 'f',
-                  value: metallic
+                  value: params.metallic
                 },
 
                 lightIntensity: {
                   type: 'f',
-                  value: lightIntensity
+                  value: params.lightIntensity
                 },
 
                 uvScale: {
