@@ -1,4 +1,43 @@
 /**
+ * Returns whether a string ends with the characters of another string.
+ *
+ * @param {String} str String to search in.
+ * @param {String} searchStr Suffix to look for.
+ * @returns {Boolean} Whether the string ends with the search string.
+ */
+var endsWith = module.exports.endsWith = function (str, searchStr, position) {
+  if (String.prototype.endsWith) {
+    return str.endsWith(searchStr, position);
+  }
+
+  str = str.toString();
+  if (typeof position === 'undefined' || position > str.length) {
+    position = str.length;
+  }
+  position -= searchStr.length;
+  var lastIndex = str.indexOf(searchStr, position);
+  return lastIndex !== -1 && lastIndex === position;
+};
+
+/**
+ * Returns a string of only numeric characters.
+ *
+ * @param {String} val String to parse (e.g., '5.0', '5 s', '5s', '5ms').
+ */
+var parseTimeIfPossible = module.exports.parseTimeIfPossible = function (attr, val) {
+  if (typeof val === 'string' && attr === 'delay' || attr === 'duration') {
+    var unit = val.replace(/\s+$/g, '');
+    if (endsWith(unit, 'ms')) {
+      return parseFloat(val);
+    } else if (endsWith(unit, 's')) {
+      return parseFloat(val) * 1000;
+    }
+  }
+
+  return val;
+};
+
+/**
  * Throws an error given a message.
  *
  * @param {String} msg Error message.
@@ -47,6 +86,8 @@ module.exports.parseAttributeString = function (attr, value, defaultValue) {
   var valueLower = (value || '').toLowerCase();
   var values = '';
 
+  defaultValue = parseTimeIfPossible(attr, defaultValue);
+
   if (typeof defaultValue === 'undefined') {
     defaultValue = getDefaultValue(attr);
   }
@@ -70,6 +111,11 @@ module.exports.parseAttributeString = function (attr, value, defaultValue) {
   }
 
   if (typeof defaultValue === 'number') {
+    value = parseTimeIfPossible(attr, value);
+    if (typeof value === 'number') {
+      return value;
+    }
+
     return parseFloat(value);
   }
 
