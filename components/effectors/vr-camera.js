@@ -1,21 +1,24 @@
-require('../vr-register-element');
+var VRMarkup = require('vr-markup');
 
-var THREE = require('../../lib/three');
-var VRObject = require('./vr-object');
+var THREE = VRMarkup.THREE;
+var VREffector = VRMarkup.VREffector;
 
-module.exports = document.registerElement(
+document.registerElement(
   'vr-camera',
   {
     prototype: Object.create(
-      VRObject.prototype,
+      VREffector.prototype,
       {
         createdCallback: {
           value: function () {
-            var camera = this.object3D = new THREE.PerspectiveCamera();
-            // This should probably managed within vr-scene
-            this.sceneEl.camera = camera;
+            this.object3D = new THREE.PerspectiveCamera();
+
+            this.addEventListener('attatched', function () {
+              var attatchedElement = this.attatchedTo.element;
+              attatchedElement.object3D.add(this.object3D);
+            });
+
             this.saveInitialValues();
-            this.load();
           }
         },
 

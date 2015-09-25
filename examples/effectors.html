@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Cube</title>
+  <meta name="description" content="Cube">
+  <link rel="stylesheet" type="text/css" href="../style/vr-markup.css">
+  <link rel="stylesheet" type="text/css" href="style/main.css">
+  <script src="../build/vr-markup.js"></script>
+  <!-- assets -->
+  <script src="../components/assets/vr-geometry-cube.js"></script>
+  <script src="../components/assets/vr-geometry-sphere.js"></script>
+  <!-- effectors -->
+  <script src="../components/effectors/vr-camera.js"></script>
+  <script src="../components/effectors/vr-render.js"></script>
+  <script src="../components/effectors/vr-mesh.js"></script>
+  <script src="../components/effectors/vr-rotate.js"></script>
+  <script src="../components/effectors/vr-controls.js"></script>
+</head>
+
+<body>
+  <vr-assets>
+    <vr-geometry-cube id="cube"></vr-geometry-cube>
+    <vr-geometry-sphere id="sphere"></vr-geometry-sphere>
+  </vr-assets>
+
+  <vr-effectors>
+    <vr-render id="render"></vr-render>
+    <vr-camera id="camera"></vr-camera>
+    
+    <vr-mesh id="cubeMesh1" geometry="cube"></vr-mesh>
+    <vr-mesh id="cubeMesh2"></vr-mesh>
+    <vr-mesh id="cubeMesh3"></vr-mesh>
+    <vr-mesh id="sphereMesh" geometry="sphere"></vr-mesh>
+    
+    <vr-rotate id="rotateY" axis="y"></vr-rotate>
+    <vr-rotate id="rotateX" axis="x"></vr-rotate>
+    <vr-rotate id="rotateZ" axis="z"></vr-rotate>
+    
+    <vr-controls id="controls"></vr-controls>
+  </vr-effectors>
+
+  <vr-scene>
+    <vr-object id="myCamera1" effectors="camera, render, controls" position="0 0 20"></vr-object>
+    
+    <vr-object effectors="cubeMesh1" position="0 0 0" rotation="0 0 0"></vr-object>
+
+    <vr-object id="myGroup" effectors="rotateY" position="0 2 0" rotation="0 0 0">
+      <vr-object effectors="cubeMesh2" position="-7 0 0" rotation="0 0 0"></vr-object>
+      <vr-object effectors="cubeMesh3" position="7 0 0" rotation="0 0 0"></vr-object>
+    </vr-object>
+  </vr-scene>
+</body>
+</html>
