@@ -530,5 +530,24 @@ suite('vr-object', function () {
       var val = {x: 5, y: 10, z: 15};
       assert.deepEqual(el.getAttribute('voodoo', val), val);
     });
+
+    test('returns correct value for string data attributes', function () {
+      var el = this.el;
+      var expectedDepth = '50';
+      el.setAttribute('data-depth', expectedDepth);
+      var depth = el.getAttribute('depth');
+      assert.deepEqual(depth, expectedDepth);
+    });
+
+    test('returns correct value for XYZ data attributes', function () {
+      var self = this;
+      ['position', 'rotation', 'scale'].forEach(function (attrName) {
+        var el = self.el;
+        var attrObj = {x: 23, y: 24, z: 25};
+        el.setAttribute('data-' + attrName, attrObj);
+        var attr = el.getAttribute(attrName);
+        assert.deepEqual(attr, attrObj);
+      });
+    });
   });
 });
