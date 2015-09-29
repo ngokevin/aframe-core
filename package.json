@@ -1,28 +1,30 @@
 {
-  "name": "mozvr-gazebo",
-  "version": "0.1.9",
+  "name": "@mozvr/vr-markup",
+  "version": "0.1.36",
   "homepage": "https://github.com/MozVR/vr-markup",
   "license": "MIT",
   "main": "src/vr-markup.js",
   "dependencies": {
     "document-register-element": "^0.4.5",
+    "request-interval": "^1.0.0",
+    "three": "^0.72.0",
     "tween.js": "^15.0.0"
   },
   "devDependencies": {
     "browserify": "^11.0.1",
-    "budo": "^4.2.1",
+    "budo": "cvan/budo#7391d13",
     "crass": "^0.7.7",
-    "garnish": "^2.3.0",
+    "garnish": "^3.2.0",
     "gh-pages": "^0.4.0",
+    "husky": "^0.10.1",
     "karma": "^0.13.9",
     "karma-browserify": "4.3.0",
     "karma-chai-shallow-deep-equal": "0.0.4",
     "karma-firefox-launcher": "^0.1.4",
-    "karma-mocha": "^0.1.10",
+    "karma-mocha": "^0.2.0",
     "karma-mocha-reporter": "^1.1.0",
-    "karma-sinon-chai": "^0.3.0",
+    "karma-sinon-chai": "^1.1.0",
     "mozilla-download": "^1.0.5",
-    "pre-commit": "^1.1.1",
     "replace": "^0.3.0",
     "semistandard": "^7.0.2",
     "snazzy": "^2.0.1",
@@ -30,21 +32,20 @@
   },
   "scripts": {
     "start": "npm run dev",
-    "dev": "npm run build && budo src/vr-markup.js:build/vr-markup.js --debug --verbose --live --port 9000 -- -r ./src/vr-markup.js:vr-markup | garnish -v",
-    "build": "mkdir -p build && browserify -r ./src/vr-markup.js:vr-markup -o build/vr-markup.js --debug",
-    "dist": "rm -rf dist/ && mkdir -p dist/ && npm run dist:js:dev && npm run dist:js:min && npm run dist:css:dev && npm run dist:css:min &&  git commit -am 'Bump dist'",
-    "dist:js:dev": "browserify -r ./src/vr-markup.js:vr-markup -o dist/vr-markup.js --debug",
-    "dist:js:min": "browserify -r ./src/vr-markup.js:vr-markup | uglifyjs -cm > dist/vr-markup.min.js",
-    "dist:css:dev": "cp ./style/vr-markup.css dist/.",
-    "dist:css:min": "crass ./style/vr-markup.css > dist/vr-markup.min.css",
-    "replacepaths": "replace '../build/vr-markup.js' '../dist/vr-markup.min.js' gh-pages/ -r && replace '../style/vr-markup.css' '../dist/vr-markup.min.css' gh-pages/ -r",
+    "dev": "npm run build && budo src/vr-markup.js:build/vr-markup.js --debug --verbose --live --port 9001 --onupdate 'semistandard -v $(git ls-files '*.js') | snazzy' -- ./src/vr-markup.js -s 'vr-markup' | garnish -v",
+    "browserify": "browserify ./src/vr-markup.js -s 'vr-markup'",
+    "build": "mkdir -p build/ && npm run browserify -- --debug -o build/vr-markup.js",
+    "dist": "rm -rf dist/ && mkdir -p dist/ && npm run dist:js && npm run dist:css",
+    "dist:js": "npm run browserify -- --debug -o dist/vr-markup.js && uglifyjs dist/vr-markup.js -c warnings=false -m -o dist/vr-markup.min.js",
+    "dist:css": "cp ./style/vr-markup.css dist/. && crass ./style/vr-markup.css > dist/vr-markup.min.css",
+    "preghpages": "npm run dist && rm -rf gh-pages && mkdir -p gh-pages && cp -r {.nojekyll,dist,lib,examples,index.html} gh-pages/. && git checkout dist/ && replace 'build/vr-markup.js' 'dist/vr-markup.min.js' gh-pages/ -r --silent && replace 'style/vr-markup.css' 'dist/vr-markup.min.css' gh-pages/ -r --silent",
+    "ghpages": "node ./scripts/gh-pages",
     "gh-pages": "npm run ghpages",
-    "preghpages": "mkdir -p gh-pages && cp -r {components,dist,examples,lib} gh-pages/. && npm run replacepaths",
-    "ghpages": "gh-pages -d gh-pages && rm -rf gh-pages",
     "release": "npm version patch --minor && npm login && npm publish",
     "test": "karma start ./test/karma.conf.js",
     "test:ci": "karma start ./test/karma.conf.js --single-run",
-    "lint": "semistandard -v | snazzy"
+    "lint": "semistandard -v $(git ls-files '*.js') | snazzy",
+    "precommit": "npm run lint"
   },
   "repository": "MozVR/vr-markup",
   "bugs": {
@@ -53,11 +54,13 @@
   "semistandard": {
     "ignore": [
       "dist/**",
-      "examples/js/**",
-      "lib/cursor3D.js",
+      "examples/_js/**",
       "lib/vendor/**",
       "src/shaders/**"
     ]
   },
-  "pre-commit": "lint"
+  "engines": {
+    "node": ">= 0.12.7",
+    "npm": ">= 2.12.1"
+  }
 }
