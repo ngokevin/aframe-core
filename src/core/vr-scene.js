@@ -15,8 +15,11 @@ var VRScene = module.exports = registerElement(
           value: function () {
             this.insideIframe = window.top !== window.self;
             this.insideLoader = false;
+            this.lights = {};
+            this.materials = {};
             this.vrButton = null;
             document.addEventListener('vr-markup-ready', this.attachEventListeners.bind(this));
+            this.attachEventListeners();
             this.attachFullscreenListeners();
             this.setupScene();
           }
@@ -131,6 +134,8 @@ var VRScene = module.exports = registerElement(
             this.setupLoader();
             // three.js camera setup.
             this.setupCamera();
+            // TODO: initialize lights somewhere else.
+            this.updateMaterials();
             this.resizeCanvas();
             // Kick off the render loop.
             this.render(performance.now());
@@ -322,6 +327,48 @@ var VRScene = module.exports = registerElement(
             });
             this.renderer.render(this.object3D, camera);
             this.animationFrameID = window.requestAnimationFrame(this.render.bind(this));
+          }
+        },
+
+        /**
+         * Registers light to the scene for the scene to keep track.
+         * Doing so will update all materials in the scene.
+         *
+         * @param {object} light - light attributes (e.g., color, intensity).
+         */
+        registerLight: {
+          value: function (light) {
+            this.lights[light._id] = light;
+            this.updateMaterials();
+          }
+        },
+
+        /**
+         * Registers material component for the scene to keep track.
+         * Scene keeps track of materials in case of needed updates.
+         *
+         * @param {object} material - material component instance.
+         */
+        registerMaterial: {
+          value: function (_id, material) {
+            this.materials[_id] = material;
+          }
+        },
+
+        /**
+         * Updates all materials in the scene with the scene's lights.
+         */
+        updateMaterials: {
+          value: function () {
+            var self = this;
+            // Convert this.lights to array.
+            var lights = Object.keys(self.lights).map(function (_id) {
+              return self.lights[_id];
+            });
+            // Iterate through all materials to update lights.
+            Object.keys(self.materials).forEach(function (_id) {
+              self.materials[_id].updateLights(lights);
+            });
           }
         }
       }

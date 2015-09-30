@@ -19,7 +19,8 @@ module.exports.warn = function (msg) {
 /**
  * Returns the default value of an attribute based on its attribute name.
  *
- * @param {String} attr The name of the attribute (e.g., the string `'position'`).
+ * @param {String} attr The name of the attribute (e.g., the string
+ *        `'position'`).
  * @returns {Object} The default value of the attribute.
  */
 var getDefaultValue = function (attr) {
@@ -36,10 +37,15 @@ var getDefaultValue = function (attr) {
 /**
  * Parse and transform an attribute value from its original string value.
  *
- * @param {String} attr The name of the attribute (e.g., the string `loop` for `loop="true"`).
- * @param {String} value The value of the attribute (e.g., the string `'true'` for `loop="true"`).
- * @param {(Boolean|Number|String|Object)} defaultValue The value to use if the attribute was missing or its value was empty (e.g., the boolean `false`).
- * @returns {(Boolean|Number|String|Object)} The parsed and coerced value of the attribute (e.g., the boolean `true` for `loop="true"`).
+ * @param {String} attr The name of the attribute
+ *        (e.g., the string `loop` for `loop="true"`).
+ * @param {String} value The value of the attribute
+ *        (e.g., the string `'true'` for `loop="true"`).
+ * @param {(Boolean|Number|String|Object)} defaultValue The value to use if
+ *        the attribute was missing or its value was empty
+ *        (e.g., the boolean `false`).
+ * @returns {(Boolean|Number|String|Object)} The parsed and coerced value of
+ *          the attribute (e.g., the boolean `true` for `loop="true"`).
  */
 module.exports.parseAttributeString = function (attr, value, defaultValue) {
   if (!attr) { return; }
@@ -81,10 +87,14 @@ module.exports.parseAttributeString = function (attr, value, defaultValue) {
 };
 
 /**
- * Transform and stringify an attribute value to a string based on its original value.
+ * Transform and stringify an attribute value to a string based on its original
+ * value.
  *
- * @param {(Boolean|Number|String|Object)} value The value of the attribute (e.g., `{x: 5, y: 10, z: 15}` in `setAttribute('position', {x: 5, y: 10, z: 15})`).
- * @returns {String} The transformed and stringified value of the attribute (e.g., `5 10 15` for `position="5 10 15"`).
+ * @param {(Boolean|Number|String|Object)} value The value of the attribute
+ *        (e.g., `{x: 5, y: 10, z: 15}` in
+ *        `setAttribute('position', {x: 5, y: 10, z: 15})`).
+ * @returns {String} The transformed and stringified value of the attribute
+ *          (e.g., `5 10 15` for `position="5 10 15"`).
  */
 module.exports.stringifyAttributeValue = function (value) {
   if (typeof value === 'object') {

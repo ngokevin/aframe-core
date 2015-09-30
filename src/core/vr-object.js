@@ -158,6 +158,24 @@ var proto = {
       return VRNode.prototype.getAttribute.call(this, attrName, defaultValue);
     },
     writable: window.debug
+  },
+
+  /**
+   * Registers light component data to the vr-scene.
+   * Attaches entity's position/rotation/scale to the light component data.
+   *
+   * @param {object} light - light attributes (e.g., color, intensity).
+   */
+  registerLight: {
+    value: function (light) {
+      var entityPosition = this.getAttribute('position');
+      light.position = {
+        x: light.position.x + entityPosition.x,
+        y: light.position.y + entityPosition.y,
+        z: light.position.z + entityPosition.z
+      };
+      this.sceneEl.registerLight(light);
+    }
   }
 };
 
