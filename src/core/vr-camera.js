@@ -64,7 +64,7 @@ module.exports = document.registerElement(
             this.setAttribute('rotY', this.initValues.rotY);
             this.setAttribute('rotZ', this.initValues.rotZ);
             this.setAttribute('fov', this.initValues.fov);
-            this.setAttribute('near', this.initValues.far);
+            this.setAttribute('near', this.initValues.near);
             this.setAttribute('far', this.initValues.far);
             this.setAttribute('aspect', this.initValues.aspect);
           }
