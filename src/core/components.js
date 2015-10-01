@@ -5,3 +5,5 @@ module.exports.material = require('../components/material');
 module.exports.position = require('../components/position');
 module.exports.rotation = require('../components/rotation');
 module.exports.scale = require('../components/scale');
+module.exports.emitClick = require('../components/emitClick');
+module.exports.changeMaterial = require('../components/changeMaterial');
