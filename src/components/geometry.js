@@ -23,16 +23,24 @@ module.exports.Component = registerComponent('geometry', {
       var primitive = data.primitive;
       var geometry;
       var radius;
+      var width;
+      var height;
+      var depth;
       switch (primitive) {
         case 'box':
-          var width = data.width || defaults.size;
-          var height = data.height || defaults.size;
-          var depth = data.depth || defaults.size;
+          width = data.width || defaults.size;
+          height = data.height || defaults.size;
+          depth = data.depth || defaults.size;
           geometry = new THREE.BoxGeometry(width, height, depth);
           break;
         case 'sphere':
           radius = data.radius || defaults.size;
           geometry = new THREE.SphereGeometry(radius, defaults.segments, defaults.segments);
+          break;
+        case 'plane':
+          width = data.width || defaults.size;
+          height = data.height || defaults.size;
+          geometry = new THREE.PlaneGeometry(width, height, 1, 1);
           break;
         case 'torus':
           radius = data.radius || defaults.radius;
