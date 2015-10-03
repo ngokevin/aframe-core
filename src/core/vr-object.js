@@ -160,16 +160,40 @@ var proto = {
     writable: window.debug
   },
 
+  /**
+   * Returns Object3D attatched to this entity based on type.  If type is left blank,
+   * the method will return the current Object3D.  If none exists, it will create and
+   * return a new Mesh.
+   *
+   * @type {String} Type of Object3D being requested.
+   */
   getObject3D: {
     value: function (type) {
+      // Object3D type to be create by default
+      var defaultType = 'Mesh';
+
+      // return current Object3D if type is not specified.
+      if (this.currentObject3D && !type) {
+        return this.currentObject3D;
+      }
+
+      // finds children of specific Object3D type.
       var obj = this.object3D.children.filter(function (child) {
         return child.type === type;
       })[0];
 
+      // Create new Object3D of type
       if (!obj) {
-        obj = new THREE[type]();
+        obj = new THREE[type || defaultType]();
         this.object3D.add(obj);
       }
+
+      // Replace existing Object3D.
+      if (obj !== this.currentObject3D) {
+        this.object3D.remove(this.currentObject3D);
+      }
+      this.currentObject3D = obj;
+
       return obj;
     }
   }

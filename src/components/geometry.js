@@ -12,8 +12,7 @@ var defaults = {
 module.exports.Component = registerComponent('geometry', {
   update: {
     value: function () {
-      var object3D = this.el.getObject3D('Mesh');
-      object3D.geometry = this.setupGeometry();
+      this.setupGeometry();
     }
   },
 
@@ -26,7 +25,12 @@ module.exports.Component = registerComponent('geometry', {
       var width;
       var height;
       var depth;
+      var object3D = this.el.getObject3D('Mesh');
       switch (primitive) {
+        case 'grid':
+          object3D = this.el.getObject3D('LineSegments');
+          geometry = this.setupGridGeometry();
+          break;
         case 'box':
           width = data.width || defaults.size;
           height = data.height || defaults.size;
@@ -52,7 +56,26 @@ module.exports.Component = registerComponent('geometry', {
           VRUtils.warn('Primitive type not supported');
           break;
       }
-      this.geometry = geometry;
+      object3D.geometry = geometry;
+    }
+  },
+
+  setupGridGeometry: {
+    value: function () {
+      var size = this.data.size || 14;
+      var density = this.data.density || 1;
+
+      // Grid
+      var geometry = new THREE.Geometry();
+
+      for (var i = -size; i <= size; i += density) {
+        geometry.vertices.push(new THREE.Vector3(-size, -0.04, i));
+        geometry.vertices.push(new THREE.Vector3(size, -0.04, i));
+
+        geometry.vertices.push(new THREE.Vector3(i, -0.04, -size));
+        geometry.vertices.push(new THREE.Vector3(i, -0.04, size));
+      }
+
       return geometry;
     }
   }
