@@ -12,7 +12,7 @@ var defaults = {
 module.exports.Component = registerComponent('geometry', {
   update: {
     value: function () {
-      var object3D = this.el.object3D;
+      var object3D = this.el.getObject3D('Mesh');
       object3D.geometry = this.setupGeometry();
     }
   },

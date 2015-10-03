@@ -12,21 +12,19 @@ var defaults = {
 module.exports.Component = registerComponent('material', {
   init: {
     value: function () {
+      this.update();
     }
   },
 
   update: {
     value: function () {
       var data = this.data;
-      var object3D = this.el.object3D;
+      var object3D = this.el.getObject3D('Mesh');
       var type = data.type || defaults.type;
       var color = data.color || defaults.color;
       color = new THREE.Color(color);
       color = new THREE.Vector3(color.r, color.g, color.b);
       var material = this.material;
-      if (material !== undefined) {
-        return;
-      }
       switch (type) {
         case 'meshNormal':
           material = this.setupMeshNormalMaterial();

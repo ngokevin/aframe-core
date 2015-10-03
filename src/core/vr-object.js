@@ -18,7 +18,7 @@ var proto = {
   //  ----------------------------------  //
   attachedCallback: {
     value: function () {
-      this.object3D = new THREE.Mesh();
+      this.object3D = new THREE.Object3D();
       this.components = {};
       this.addToParent();
       this.load();
@@ -158,6 +158,20 @@ var proto = {
       return VRNode.prototype.getAttribute.call(this, attrName, defaultValue);
     },
     writable: window.debug
+  },
+
+  getObject3D: {
+    value: function (type) {
+      var obj = this.object3D.children.filter(function (child) {
+        return child.type === type;
+      })[0];
+
+      if (!obj) {
+        obj = new THREE[type]();
+        this.object3D.add(obj);
+      }
+      return obj;
+    }
   }
 };
 
