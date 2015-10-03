@@ -10,7 +10,11 @@ var flattenAttributes = function (attrs) {
   var obj = {};
   attrs.forEach(flatten);
   function flatten (attr) {
-    obj[attr.name] = attr.value[1].value;
+    // filter white space values
+    attr.value = attr.value.filter(function (att) {
+      return att.value !== undefined;
+    });
+    obj[attr.name] = attr.value[0].value;
   }
   return obj;
 };
