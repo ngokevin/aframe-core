@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Animations</title>
+    <meta name="description" content="Animations vr-markup">
+    <link rel="stylesheet" type="text/css" href="../../style/vr-markup.css">
+    <link rel="stylesheet" type="text/css" href="../_style/main.css">
+    <script src="../../build/vr-markup.js"></script>
+  </head>
+  <body>
+
+    <vr-assets>
+      <vr-geometry id="cube" primitive="Box" width="5" height="5" depth="5"></vr-geometry>
+      <vr-geometry id="sphere" primitive="Sphere" radius="3"></vr-geometry>
+
+      <vr-material id="mirror" color="purple" metallic="0.9" roughness="0.14"></vr-material>
+      <vr-material id="plastic" color="red" metallic="0.7" roughness="0.9"></vr-material>
+
+      <vr-animation id="slide" attribute="position" to="0 1 -5" duration="2s"></vr-animation>
+
+      <vr-animation id="spinA" attribute="rotation" to="0 360 0" duration="5000ms" delay="2000"></vr-animation>
+      <vr-animation id="growA" attribute="scale" to="1.25 1.25 1.25" duration="2.5 s" delay="5s"></vr-animation>
+
+      <vr-animation id="spinB" attribute="rotation" to="0 360 0" duration="5000 ms" delay="2.0 s"></vr-animation>
+      <vr-animation id="growB" attribute="scale" to="1.5 1.5 1.5" duration="2500.0ms" delay="2.50s"></vr-animation>
+      <vr-animation id="shrinkB" attribute="scale" to="1 1 1" duration="2s" delay="4.5s"></vr-animation>
+    </vr-assets>
+
+    <vr-scene>
+      <vr-controls position="0 0 15">
+        <vr-camera></vr-camera>
+      </vr-controls>
+
+      <vr-mesh animation="slide spinA growA" geometry="cube" position="-5 0 0" rotation="45 45 0" material="plastic"></vr-mesh>
+      <vr-mesh animation="slide growB shrinkB" geometry="sphere" position="5 0 0" material="mirror"></vr-mesh>
+    </vr-scene>
+
+  </body>
+</html>
