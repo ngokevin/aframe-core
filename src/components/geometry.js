@@ -12,8 +12,7 @@ var defaults = {
 module.exports.Component = registerComponent('geometry', {
   update: {
     value: function () {
-      var object3D = this.el.object3D;
-      object3D.geometry = this.setupGeometry();
+      this.setupGeometry();
     }
   },
 
@@ -23,16 +22,29 @@ module.exports.Component = registerComponent('geometry', {
       var primitive = data.primitive;
       var geometry;
       var radius;
+      var width;
+      var height;
+      var depth;
+      var object3D = this.el.getObject3D('Mesh');
       switch (primitive) {
+        case 'grid':
+          object3D = this.el.getObject3D('LineSegments');
+          geometry = this.setupGridGeometry();
+          break;
         case 'box':
-          var width = data.width || defaults.size;
-          var height = data.height || defaults.size;
-          var depth = data.depth || defaults.size;
+          width = data.width || defaults.size;
+          height = data.height || defaults.size;
+          depth = data.depth || defaults.size;
           geometry = new THREE.BoxGeometry(width, height, depth);
           break;
         case 'sphere':
           radius = data.radius || defaults.size;
           geometry = new THREE.SphereGeometry(radius, defaults.segments, defaults.segments);
+          break;
+        case 'plane':
+          width = data.width || defaults.size;
+          height = data.height || defaults.size;
+          geometry = new THREE.PlaneGeometry(width, height, 1, 1);
           break;
         case 'torus':
           radius = data.radius || defaults.radius;
@@ -44,7 +56,26 @@ module.exports.Component = registerComponent('geometry', {
           VRUtils.warn('Primitive type not supported');
           break;
       }
-      this.geometry = geometry;
+      object3D.geometry = geometry;
+    }
+  },
+
+  setupGridGeometry: {
+    value: function () {
+      var size = this.data.size || 14;
+      var density = this.data.density || 1;
+
+      // Grid
+      var geometry = new THREE.Geometry();
+
+      for (var i = -size; i <= size; i += density) {
+        geometry.vertices.push(new THREE.Vector3(-size, -0.04, i));
+        geometry.vertices.push(new THREE.Vector3(size, -0.04, i));
+
+        geometry.vertices.push(new THREE.Vector3(i, -0.04, -size));
+        geometry.vertices.push(new THREE.Vector3(i, -0.04, size));
+      }
+
       return geometry;
     }
   }
