@@ -2,6 +2,7 @@ var registerComponent = require('../core/register-component');
 var THREE = require('../../lib/three');
 
 var defaults = {
+  controlType: 'walk',
   locomotion: true,
   acceleration: 0.1,
   easing: 20,
@@ -28,6 +29,7 @@ module.exports.Component = registerComponent('keyboardControls', {
       } else {
         this.locomotion = this.data.locomotion === 'true';
       }
+      this.controlType = this.data.type || defaults.controlType;
       this.acceleration = defaults.acceleration;
       this.easing = defaults.easing;
       this.rotationSpeed = defaults.rotationSpeed;
@@ -87,24 +89,41 @@ module.exports.Component = registerComponent('keyboardControls', {
       var fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion);
       var lat = new THREE.Vector3(1, 0, 0).applyQuaternion(quaternion);
 
-      // we want to rotate around Y, so we reset to 0 value.
-      fwd.y = 0;
+      switch (this.controlType) {
+        case 'walk':
+          // we want to rotate around Y, so we reset to 0 value.
+          fwd.y = 0;
 
-      // calculate corodinate for forward movement
-      var fwdRot = Math.atan2(fwd.x, -fwd.z);
-      fwdX = Math.sin(fwdRot);
-      fwdZ = -Math.cos(fwdRot);
+          // calculate corodinate for forward movement
+          var fwdRot = Math.atan2(fwd.x, -fwd.z);
+          fwdX = Math.sin(fwdRot);
+          fwdZ = -Math.cos(fwdRot);
 
-      // calculate coordinates for lateral movement
-      var latRot = Math.atan2(lat.x, -lat.z);
-      latX = Math.sin(latRot);
-      latZ = -Math.cos(latRot);
+          // calculate coordinates for lateral movement
+          var latRot = Math.atan2(lat.x, -lat.z);
+          latX = Math.sin(latRot);
+          latZ = -Math.cos(latRot);
 
-      // apply velocity
-      fwdX *= -velocity.z;
-      fwdZ *= -velocity.z;
-      latX *= velocity.x;
-      latZ *= velocity.x;
+          // apply velocity
+          fwdX *= -velocity.z;
+          fwdZ *= -velocity.z;
+          latX *= velocity.x;
+          latZ *= velocity.x;
+          break;
+        case 'fly':
+          // apply velocity
+          fwd.multiplyScalar(-velocity.z);
+          lat.multiplyScalar(velocity.x);
+
+          fwdX = fwd.x;
+          latX = lat.x;
+          vertY = fwd.y + lat.y;
+          fwdZ = fwd.z + lat.z;
+          break;
+        default:
+          console.warn('[vr-controls] Unrecognized control type');
+          break;
+      }
 
       position.set(position.x + fwdX + latX,
         position.y + vertY,
