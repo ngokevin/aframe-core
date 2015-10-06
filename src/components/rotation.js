@@ -5,7 +5,7 @@ module.exports.Component = registerComponent('rotation', {
   update: {
     value: function () {
       var data = this.data;
-      var object3D = this.el.object3D;
+      var object3D = this.el.getObject3D();
       // Updates three.js object
       var rotationX = THREE.Math.degToRad(data.x);
       var rotationY = THREE.Math.degToRad(data.y);
