@@ -4,6 +4,7 @@ require('../components/camera');
 require('../components/controls');
 require('../components/cursor');
 require('../components/controls/keyboard');
+require('../components/controls/mouse');
 require('../components/geometry');
 require('../components/hmd-controls');
 require('../components/light');
