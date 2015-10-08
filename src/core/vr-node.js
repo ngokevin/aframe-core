@@ -1,5 +1,4 @@
-/* global Event, HTMLElement */
-
+/* global Event, HTMLElement, MutationObserver */
 require('../vr-register-element');
 
 var VRUtils = require('../vr-utils');
@@ -22,16 +21,12 @@ module.exports = document.registerElement(
         //   Native custom elements callbacks   //
         //  ----------------------------------  //
 
-        createdCallback: {
+        attachedCallback: {
           value: function () {
             var sceneEl = document.querySelector('vr-scene');
             this.sceneEl = sceneEl;
+            this.updateMixin();
           },
-          writable: window.debug
-        },
-
-        attachedCallback: {
-          value: function () { /* no-op */ },
           writable: window.debug
         },
 
@@ -41,19 +36,29 @@ module.exports = document.registerElement(
         },
 
         attributeChangedCallback: {
-          value: function () { /* no-op */ },
+          value: function (attr) {
+            if (attr !== 'mixin') { return; }
+            this.updateMixin();
+          },
           writable: window.debug
+        },
+
+        updateMixin: {
+          value: function () {
+            var mixinId = this.getAttribute('mixin');
+            this.mixinEl = document.querySelector('#' + mixinId);
+            // Listens to changes on the mixin if there's any
+            this.attachMixinListener(this.mixinEl);
+          }
         },
 
         load: {
           value: function () {
             // To prevent emmitting the loaded event more than once
             if (this.hasLoaded) { return; }
-            var attributeChangedCallback = this.attributeChangedCallback;
             var event = new Event('loaded');
             this.hasLoaded = true;
             this.dispatchEvent(event);
-            if (attributeChangedCallback) { attributeChangedCallback.apply(this); }
           },
           writable: window.debug
         },
@@ -70,6 +75,84 @@ module.exports = document.registerElement(
           value: function (attr, defaultValue) {
             var value = HTMLElement.prototype.getAttribute.call(this, attr);
             return VRUtils.parseAttributeString(attr, value, defaultValue);
+          },
+          writable: window.debug
+        },
+
+        mixinChanged: {
+          value: function (newMixin, oldMixin) {
+            if (oldMixin) { this.removeMixinListener(oldMixin); }
+            this.attachMixinListener(newMixin);
+          },
+          writable: window.debug
+        },
+
+        removeMixinListener: {
+          value: function () {
+            var observer = this.mixinObserver;
+            if (!observer) { return; }
+            observer.disconnect();
+            this.mixinObserver = null;
+          },
+          writable: window.debug
+        },
+
+        attachMixinListener: {
+          value: function (mixinEl) {
+            var self = this;
+            var currentObserver = this.mixinObserver;
+            if (!mixinEl) { return; }
+            if (currentObserver) { currentObserver.disconnect(); }
+            var observer = new MutationObserver(function (mutations) {
+              var attr = mutations[0].attributeName;
+              self.applyMixin(attr);
+            });
+            var config = { attributes: true };
+            observer.observe(mixinEl, config);
+            this.mixinObserver = observer;
+          },
+          writable: window.debug
+        },
+
+        applyMixin: {
+          value: function () { /* no-op */ },
+          writable: window.debug
+        },
+
+        /**
+         * Emits a DOM event.
+         *
+         * @param {String} name
+         *   Name of event (use a space-delimited string for multiple events).
+         * @param {Object} detail
+         *   Custom data (optional) to pass as `detail` if the event is to
+         *   be a `CustomEvent`.
+         */
+        emit: {
+          value: function (name, detail) {
+            var self = this;
+            return name.split(' ').map(function (eventName) {
+              return VRUtils.fireEvent(self, eventName, detail);
+            });
+          },
+          writable: window.debug
+        },
+
+        /**
+         * Returns a closure that emits a DOM event.
+         *
+         * @param {String} name
+         *   Name of event (use a space-delimited string for multiple events).
+         * @param {Object} detail
+         *   Custom data (optional) to pass as `detail` if the event is to
+         *   be a `CustomEvent`.
+         */
+        emitter: {
+          value: function (name, detail) {
+            var self = this;
+            return function () {
+              self.emit(name, detail);
+            };
           },
           writable: window.debug
         }

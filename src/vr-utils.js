@@ -1,3 +1,16 @@
+/* global CustomEvent, Event */
+
+/**
+ * Fires a DOM event.
+ *
+ * @param {Element} el Element to fire the event on.
+ * @param {String} name Name of the event.
+ * @param {Object} detail Custom data to pass as `detail` if the event is a Custom Event.
+ */
+module.exports.fireEvent = function (el, name, detail) {
+  el.dispatchEvent(detail ? new CustomEvent(name, detail) : new Event(name));
+};
+
 /**
  * Throws an error given a message.
  *
@@ -34,6 +47,34 @@ var getDefaultValue = function (attr) {
 };
 
 /**
+ * Given a coordinate in a string form "0 0 0"
+ * It returns the coordinate parsed as an object
+ * { x: 3, y: 4, z: -10} or the default value
+ *
+ * @param  {String} value        String to parse
+ * @param  {Object} defaultValue Default value
+ * @return {Object}              Parsed coordinate
+ */
+var parseCoordinate = module.exports.parseCoordinate =
+function (value, defaultValue) {
+  var def;
+  var values = '';
+  if (typeof value !== 'string') { return defaultValue; }
+  if (typeof defaultValue === 'object') {
+    if ('x' in defaultValue && 'y' in defaultValue && 'z' in defaultValue) {
+      def = defaultValue;
+    }
+  }
+  def = def || {x: 0, y: 0, z: 0};
+  values = value.split(' ');
+  return {
+    x: parseFloat(values[0] || defaultValue.x),
+    y: parseFloat(values[1] || defaultValue.y),
+    z: parseFloat(values[2] || defaultValue.z)
+  };
+};
+
+/**
  * Parse and transform an attribute value from its original string value.
  *
  * @param {String} attr The name of the attribute (e.g., the string `loop` for `loop="true"`).
@@ -44,40 +85,25 @@ var getDefaultValue = function (attr) {
 module.exports.parseAttributeString = function (attr, value, defaultValue) {
   if (!attr) { return; }
 
-  var valueLower = (value || '').toLowerCase();
-  var values = '';
+  var valueLower = typeof value === 'string' ? value.toLowerCase() : value;
+  // Internal default value (for position, rotation, scale...)
+  var internalDefault = getDefaultValue(attr);
+  defaultValue = defaultValue !== undefined ? defaultValue : internalDefault;
+  // Type inference logic
+  // If there's not a passed default value we fall back
+  // to the internal default value type.
+  var type = typeof defaultValue;
 
-  if (typeof defaultValue === 'undefined') {
-    defaultValue = getDefaultValue(attr);
+  switch (type) {
+    case 'object':
+      return parseCoordinate(value, defaultValue);
+    case 'number':
+      return parseFloat(value);
+    case 'boolean':
+      return valueLower === 'true';
+    default:
+      return value !== undefined ? value : null;
   }
-
-  if (typeof defaultValue === 'object') {
-    if ('x' in defaultValue && 'y' in defaultValue && 'z' in defaultValue) {
-      if (!value) { return defaultValue; }
-
-      values = value.split(' ');
-
-      return {
-        x: parseFloat(values[0] || defaultValue.x),
-        y: parseFloat(values[1] || defaultValue.y),
-        z: parseFloat(values[2] || defaultValue.z)
-      };
-    }
-  }
-
-  if (value === '' || value === null || typeof value === 'undefined') {
-    return typeof defaultValue === 'undefined' ? null : defaultValue;
-  }
-
-  if (typeof defaultValue === 'number') {
-    return parseFloat(value);
-  }
-
-  if (typeof defaultValue === 'boolean') {
-    return valueLower === 'true';
-  }
-
-  return value;
 };
 
 /**
@@ -96,4 +122,31 @@ module.exports.stringifyAttributeValue = function (value) {
   }
 
   return String(value);
+};
+
+/**
+ * It mixes properties of source object into dest
+ * @param  {object} dest   The object where properties will be copied TO
+ * @param  {object} source The object where properties will be copied FROM
+ */
+module.exports.mixin = function (dest, source) {
+  var keys = Object.keys(source);
+  keys.forEach(mix);
+  function mix (key) {
+    dest[key] = source[key];
+  }
+  return dest;
+};
+
+/**
+ * It mixes properties of source object into dest
+ * @param  {object} dest   The object where properties will be copied TO
+ * @param  {object} source The object where properties will be copied FROM
+ */
+module.exports.isVRObject = function (dest, source) {
+  var keys = Object.keys(source);
+  keys.forEach(mix);
+  function mix (key) {
+    dest[key] = source[key];
+  }
 };
