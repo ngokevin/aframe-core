@@ -28,6 +28,7 @@ var proto = {
   //  ----------------------------------  //
   attachedCallback: {
     value: function () {
+      if (!this.isVRNode) { return; }
       this.object3D = new THREE.Mesh();
       this.components = {};
       this.states = [];
@@ -39,7 +40,7 @@ var proto = {
 
   detachedCallback: {
     value: function () {
-      if (!this.parentEl) { return; }
+      if (!this.isVRNode || !this.parentEl) { return; }
       this.parentEl.remove(this);
     },
     writable: window.debug
@@ -47,6 +48,7 @@ var proto = {
 
   attributeChangedCallback: {
     value: function (attr, oldVal, newVal) {
+      if (!this.isVRNode) { return; }
       // In Firefox the callback is called even if the
       // attribute value doesn't change. We return
       // if old and new values are the same
@@ -130,7 +132,7 @@ var proto = {
     value: function () {
       var parent = this.parentEl = this.parentNode;
       var attachedToParent = this.attachedToParent;
-      if (!parent || attachedToParent || !VRNode.prototype.isPrototypeOf(parent)) { return; }
+      if (!parent || attachedToParent || !parent.isVRNode) { return; }
       // To prevent an object to attach itself multiple times to the parent
       this.attachedToParent = true;
       parent.add(this);
@@ -218,7 +220,7 @@ var proto = {
       if (!hasAttribute && hasDefault) {
         this.setAttribute(name, defaults[name]);
       }
-      VRUtils.log('Component initialized: ' + name);
+      VRUtils.log('Component initialized: %s', name);
     }
   },
 
@@ -237,7 +239,7 @@ var proto = {
       // Update if component already initialized
       if (component) {
         component.updateAttributes();
-        VRUtils.log('Component updated: ' + name);
+        VRUtils.log('Component updated: %s', name);
         return;
       }
       this.initComponent(name);

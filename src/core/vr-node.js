@@ -23,6 +23,8 @@ module.exports = document.registerElement(
 
         attachedCallback: {
           value: function () {
+            if (this.closest && this.closest('vr-template')) { return; }
+            this.isVRNode = true;
             var sceneEl = document.querySelector('vr-scene');
             var mixins = this.getAttribute('mixin');
             this.sceneEl = sceneEl;

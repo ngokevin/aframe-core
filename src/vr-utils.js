@@ -26,7 +26,7 @@ module.exports.error = function (msg) {
  * @param {String} msg Warning message.
  */
 module.exports.warn = function (msg) {
-  console.warn(msg);
+  console.warn.apply(console, arguments);
 };
 
 /**
@@ -35,7 +35,7 @@ module.exports.warn = function (msg) {
  * @param {String} msg Log message.
  */
 module.exports.log = function (msg) {
-  console.log(msg);
+  console.log.apply(console, arguments);
 };
 
 /**
