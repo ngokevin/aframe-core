@@ -141,6 +141,7 @@ var VRScene = module.exports = registerElement(
 
         createEnterVrButton: {
           value: function () {
+            if (this.vrButton) { return; }  // To prevent creating multiple buttons.
             var vrButton = this.vrButton = document.createElement('button');
             vrButton.textContent = 'Enter VR';
             vrButton.className = 'vr-button';
@@ -225,6 +226,7 @@ var VRScene = module.exports = registerElement(
 
         setupCanvas: {
           value: function () {
+            if (this.canvas) { return; }  // To prevent creating multiple canvases.
             var canvas = this.canvas = document.createElement('canvas');
             canvas.classList.add('vr-canvas');
             document.body.appendChild(canvas);
