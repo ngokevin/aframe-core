@@ -55,6 +55,7 @@ var proto = {
       var newValStr = newVal;
       var component = VRComponents[attr];
       if (component && typeof newVal !== 'string') {
+        if (newVal === null) { return; }  // If no default was set, this'll be `null`.
         newValStr = component.stringifyAttributes(newVal);
       }
       if (oldVal === newValStr) { return; }
