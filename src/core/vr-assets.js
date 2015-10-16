@@ -27,7 +27,7 @@ module.exports = registerElement(
             }
 
             function countElement (node) {
-              if (!node.isVRNode) { return; }
+              if (!node.isLive) { return; }
               if (!node.hasLoaded) {
                 attachEventListener(node);
                 self.assetsPending++;

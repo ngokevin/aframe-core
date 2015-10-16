@@ -28,7 +28,7 @@ var proto = {
   //  ----------------------------------  //
   attachedCallback: {
     value: function () {
-      if (!this.isVRNode) { return; }
+      if (!this.isLive) { return; }
       this.object3D = new THREE.Mesh();
       this.components = {};
       this.states = [];
@@ -40,7 +40,7 @@ var proto = {
 
   detachedCallback: {
     value: function () {
-      if (!this.isVRNode || !this.parentEl) { return; }
+      if (!this.isLive || !this.parentEl) { return; }
       this.parentEl.remove(this);
     },
     writable: window.debug
@@ -48,7 +48,7 @@ var proto = {
 
   attributeChangedCallback: {
     value: function (attr, oldVal, newVal) {
-      if (!this.isVRNode) { return; }
+      if (!this.isLive) { return; }
       // In Firefox the callback is called even if the
       // attribute value doesn't change. We return
       // if old and new values are the same
@@ -133,7 +133,7 @@ var proto = {
     value: function () {
       var parent = this.parentEl = this.parentNode;
       var attachedToParent = this.attachedToParent;
-      if (!parent || attachedToParent || !parent.isVRNode) { return; }
+      if (!parent || attachedToParent || !parent.isLive) { return; }
       // To prevent an object to attach itself multiple times to the parent
       this.attachedToParent = true;
       parent.add(this);

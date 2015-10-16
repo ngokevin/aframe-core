@@ -53,7 +53,7 @@ var VRScene = module.exports = registerElement(
 
             function countElement (node) {
               // We wait for all the elements inside the scene to load.
-              if (!node.isVRNode) { return; }
+              if (!node.isLive) { return; }
               var isCamera = node.components && node.components.camera;
               if (isCamera) { self.cameraEl = node; }
               if (!node.hasLoaded) {
