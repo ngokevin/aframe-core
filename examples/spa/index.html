@@ -18,23 +18,6 @@
     </main>
     <script>
       (function () {
-        function get(url, cbSuccess, cbError) {
-          var xhr = new XMLHttpRequest();
-          xhr.addEventListener('load', function () {
-            if (xhr.status >= 200 && xhr.status < 300 || xhr.status === 304 || xhr.status === 0) {
-              cbSuccess(xhr);
-            } else {
-              cbError(xhr);
-            }
-          });
-          xhr.addEventListener('error', function () {
-            cbError(xhr);
-          });
-          xhr.responseType = 'document';
-          xhr.open('get', url);
-          xhr.send();
-        }
-
         var counter = 0;
         var worlds = [
           '../animation/',
@@ -74,9 +57,14 @@
         }
 
         function loadWorld(idx) {
-          get(worlds[idx], function (res) {
-            injectAsHTML(res.response.body);
-          }, function (res) {
+          // Could just use `XMLHttpRequest` directly, but THREE's `XHRLoader`
+          // does nice caching.
+          var loader = new vrMarkup.THREE.XHRLoader();
+          loader.setCrossOrigin('');
+          loader.setResponseType('document');
+          loader.load(worlds[idx], function (res) {
+            injectAsHTML(res.body);
+          }, function () {}, function (res) {
             throw new Error('Could not load "' + worlds[idx] + '": ' + res.statusText);
             console.error(res);
           });
