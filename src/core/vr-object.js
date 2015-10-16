@@ -28,6 +28,7 @@ var proto = {
   //  ----------------------------------  //
   attachedCallback: {
     value: function () {
+      if (!this.isLive) { return; }
       this.object3D = new THREE.Mesh();
       this.components = {};
       this.states = [];
@@ -39,7 +40,7 @@ var proto = {
 
   detachedCallback: {
     value: function () {
-      if (!this.parentEl) { return; }
+      if (!this.isLive || !this.parentEl) { return; }
       this.parentEl.remove(this);
     },
     writable: window.debug
@@ -47,12 +48,14 @@ var proto = {
 
   attributeChangedCallback: {
     value: function (attr, oldVal, newVal) {
+      if (!this.isLive) { return; }
       // In Firefox the callback is called even if the
       // attribute value doesn't change. We return
       // if old and new values are the same
       var newValStr = newVal;
       var component = VRComponents[attr];
       if (component && typeof newVal !== 'string') {
+        if (newVal === null) { return; }  // If no default was set, this'll be `null`.
         newValStr = component.stringifyAttributes(newVal);
       }
       if (oldVal === newValStr) { return; }
@@ -130,7 +133,7 @@ var proto = {
     value: function () {
       var parent = this.parentEl = this.parentNode;
       var attachedToParent = this.attachedToParent;
-      if (!parent || attachedToParent || !VRNode.prototype.isPrototypeOf(parent)) { return; }
+      if (!parent || attachedToParent || !parent.isLive) { return; }
       // To prevent an object to attach itself multiple times to the parent
       this.attachedToParent = true;
       parent.add(this);
@@ -218,7 +221,7 @@ var proto = {
       if (!hasAttribute && hasDefault) {
         this.setAttribute(name, defaults[name]);
       }
-      VRUtils.log('Component initialized: ' + name);
+      VRUtils.log('Component initialized: %s', name);
     }
   },
 
@@ -237,7 +240,7 @@ var proto = {
       // Update if component already initialized
       if (component) {
         component.updateAttributes();
-        VRUtils.log('Component updated: ' + name);
+        VRUtils.log('Component updated: %s', name);
         return;
       }
       this.initComponent(name);
