@@ -19,9 +19,17 @@
     <vr-object position="0 0 20" camera="fov: 45"
                controls="mouselook: true; locomotion: true"></vr-object>
 
-    <vr-object light="color: #CCCCFF; intensity: 15"
-               position="-10 10 10" rotation="-0.2 0.2 0.2">
+    <!-- Ambient light. -->
+    <vr-object light="type: ambient; color: #222"></vr-object>
+
+    <!-- Animating directional light. -->
+    <vr-object light="color: #EEEEEE; intensity: 5" rotation="-0.2 0.2 0.2">
       <vr-animation mixin="orbit"></vr-animation>
+    </vr-object>
+
+    <!-- Fixed directional light. -->
+    <vr-object light="color: #EEEEEE; intensity: 2.5"
+               position="-10 10 10" rotation="-0.2 0 0.2">
     </vr-object>
 
     <!-- Lit objects. -->
@@ -32,7 +40,7 @@
     <vr-object position="0 0 0" rotation="0 45 0" geometry="primitive: box"
                material="color: green; metallic: .8"></vr-object>
     <vr-object position="10 0 0" rotation="0 0 45" geometry="primitive: box"
-               material="color: blue; roughness: 1; metallic: 0"></vr-object>
+               material="color: blue; roughness: 1; metallic: .5"></vr-object>
   </vr-scene>
 </body>
 </html>

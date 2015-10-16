@@ -18,7 +18,6 @@
  * @param roughness (float)
  *
  * Currently supports directional light.
- * TODO: add support and defaults for ambient lighting.
  * TODO: add support for point light, light positions are present but unused.
  *
  * Originally adapted from: alexandre-pestana.com/webgl/PBRViewer.html
@@ -36,6 +35,7 @@ uniform samplerCube envMap2;
 uniform samplerCube envMap3;
 uniform samplerCube envMap4;
 uniform samplerCube envMap5;
+uniform vec3 ambientLight;
 uniform vec3 lightColors[{{lightArraySize}}];
 uniform vec3 lightDirections[{{lightArraySize}}];
 uniform int lightIntensities[{{lightArraySize}}];
@@ -192,7 +192,7 @@ void main() {
                                              viewDir);
 
   // Sum the lights.
-  vec3 totalLighting = vec3(0.0);
+  vec3 totalLighting = ambientLight;
   for (int i = 0; i < {{lightArraySize}}; i++) {
     totalLighting += (
       vec3(lightIntensities[i]) *
