@@ -42,6 +42,9 @@ var proto = {
     value: function () {
       if (!this.parentEl) { return; }
       this.parentEl.remove(this);
+      if (this.light) {
+        this.sceneEl.deregisterLight(this.light);
+      }
     },
     writable: window.debug
   },

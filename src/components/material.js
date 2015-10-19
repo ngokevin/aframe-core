@@ -64,23 +64,23 @@ module.exports.Component = registerComponent('material', {
    * If the number of lights changed, recreate material.
    * Else just update the material.
    *
-   * @params (array) lights - array of light objects.
+   * @params {array} lights - array of light objects.
+   * @params {boolean} recompileShader - whether or not to recompile shader.
    */
   updateLights: {
-    value: function (lights) {
-      var previousLights = this.lights;
+    value: function (lights, recompileShader) {
       this.lights = lights || [];
 
       if (this.el.object3D.material.type === MATERIAL_TYPE__TEXTURE) {
         // Lights not used for texture materials. Store lights anyways.
         return;
       }
-      if (previousLights.length === this.lights.length) {
+      if (recompileShader) {
+        // Need to recompile the shader (usually because # of lights changed).
+        this.el.object3D.material = this.getMaterial();
+      } else {
         // Attribute of light changed, update uniforms.
         this.update();
-      } else {
-        // Number of lights changed, need to recompile the shader.
-        this.el.object3D.material = this.getMaterial();
       }
     }
   },
