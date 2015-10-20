@@ -7,6 +7,7 @@ module.exports.Component = registerComponent('raycaster', {
     value: function () {
       this.raycaster = new THREE.Raycaster();
       this.intersectedEl = null;
+      this.mousedownEl = null;
       this.attachEventListeners();
       this.pollForHoverIntersections();
     }
@@ -15,10 +16,11 @@ module.exports.Component = registerComponent('raycaster', {
   attachEventListeners: {
     value: function () {
       var el = this.el;
+      var canvasEl = document.querySelector('vr-scene').canvas;
 
-      document.addEventListener('mousedown', el.emitter('mousedown'));
-      document.addEventListener('mouseup', el.emitter('mouseup'));
-      document.addEventListener('click', el.emitter('click'));
+      canvasEl.addEventListener('mousedown', el.emitter('mousedown'), true);
+      canvasEl.addEventListener('mouseup', el.emitter('mouseup'), true);
+      canvasEl.addEventListener('click', el.emitter('click'), true);
 
       el.addEventListener('mousedown', this.emitOnIntersection('mousedown'));
       el.addEventListener('mouseup', this.emitOnIntersection('mouseup'));
@@ -48,7 +50,13 @@ module.exports.Component = registerComponent('raycaster', {
       return function () {
         var closest = self.getClosestIntersected();
         if (!closest) { return; }
-        closest.object.el.emit(name);
+        var el = closest.object.el;
+        if (name === 'mousedown') {
+          this.mousedownEl = el;
+        } else if (name === 'mouseup' || name === 'click') {
+          if (this.mousedownEl !== el) { return; }
+        }
+        el.emit(name);
       };
     }
   },
