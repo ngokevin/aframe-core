@@ -9,6 +9,12 @@
     <script src="../../build/vr-markup.js"></script>
   </head>
   <body>
+    <vr-assets>
+      <vr-mixin id="link" geometry="primitive: plane; width: 0.5; height: 0.5"></vr-mixin>
+      <vr-mixin id="link-hovered" geometry="width: 0.55; height: 0.55"></vr-mixin>
+      <vr-mixin id="link-selected" geometry="width: 0.75; height: 0.75"></vr-mixin>
+    </vr-assets>
+
     <vr-scene>
 
       <!-- Controls -->
@@ -17,7 +23,7 @@
       </vr-object>
 
       <!-- Pano -->
-      <vr-object id="holder" geometry="primitive: sphere; radius: 10;" material="url: images/city.jpg;"></vr-object>
+      <vr-object id="holder" geometry="primitive: sphere; radius: 10;"></vr-object>
 
       <!-- Links to panos -->
       <vr-object id="links" position="-1 -0.3 -2">
@@ -26,7 +32,6 @@
 
     <script>
       (function () {
-
         // Data for our panos
         var panos = [
           {
@@ -49,21 +54,26 @@
         var links = document.querySelector('#links');
         var holder = document.querySelector('#holder');
         var width = 0.5;
-        var height = 0.5;
+        var activePano = null;
 
         // Create a link for each item in panos[]
         panos.forEach(function (pano, idx) {
 
           // Arrange the links horizontally without any overlaps
-          var xPos = idx * width * 1.1;
+          var xPos = idx * width * 1.5;
 
           var el = document.createElement('vr-object');
+          el.setAttribute('mixin', 'link');
           el.setAttribute('position', {x: xPos});
-          el.setAttribute('geometry', {primitive: "plane", width: width, height: height});
           el.setAttribute('material', {url: 'images/' + pano.thumb});
-          
+
           // When a link is clicked, change the displayed pano by changing the material attribute of the holder element
           el.addEventListener('click', function () {
+            if (activePano) {
+              activePano.removeState('selected');
+            }
+            el.addState('selected');
+            activePano = el;
             holder.setAttribute('material', {url: 'images/' + pano.url});
           });
 
@@ -71,8 +81,19 @@
           links.appendChild(el);
         });
 
+        // Select the second pano
+        window.addEventListener('vr-markup-ready', function () {
+          var initialLink = links.querySelectorAll('vr-object')[1];
+          initialLink.click();
+          function changeState (e) {
+            if (e.detail.state === 'hovered') {
+              initialLink.click();
+            }
+            initialLink.removeEventListener('stateadded', changeState);
+          }
+          initialLink.addEventListener('stateadded', changeState);
+        });
       })();
-
     </script>
 
   </body>
