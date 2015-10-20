@@ -8,12 +8,12 @@ require('document-register-element');
  ------------------------------------------------------------
 
  This module wraps registerElement to deal with
- components that inherit from VRNode and VRObject.
+ components that inherit from ANode and AObject.
  It's a pass through in any other case.
 
  It wraps some of the prototype methods
  of the created element to make sure that the corresponding
- functions in the base classes (VRObject and VRNode) are also
+ functions in the base classes (AObject and ANode) are also
  invoked. The method in the base class is always call before the
  one in the derived object.
 
@@ -29,15 +29,15 @@ module.exports = document.registerElement = function (tagName, obj) {
   var proto = Object.getPrototypeOf(obj.prototype);
   var newObj = obj;
 
-  // Does the element inherit from VRNode?
-  if (VRNode && proto === VRNode.prototype) {
-    newObj = wrapVRNodeMethods(obj.prototype);
+  // Does the element inherit from ANode?
+  if (ANode && proto === ANode.prototype) {
+    newObj = wrapANodeMethods(obj.prototype);
     newObj = {prototype: Object.create(proto, newObj)};
   }
 
-  // Does the element inherit from VRObject?
-  if (VRObject && proto === VRObject.prototype) {
-    newObj = wrapVRObjectMethods(obj.prototype);
+  // Does the element inherit from AObject?
+  if (AObject && proto === AObject.prototype) {
+    newObj = wrapAObjectMethods(obj.prototype);
     newObj = {prototype: Object.create(proto, newObj)};
   }
 
@@ -45,34 +45,34 @@ module.exports = document.registerElement = function (tagName, obj) {
 };
 
 /**
- * This wraps some of the obj methods to call those on VRNode base clase
+ * This wraps some of the obj methods to call those on ANode base clase
  * @param  {object} obj The objects that contains the methods that will be wrapped
  * @return {object} An object with the same properties as the input parameter but
  * with some of methods wrapped.
  */
-function wrapVRNodeMethods (obj) {
+function wrapANodeMethods (obj) {
   var newObj = {};
-  wrapMethods(newObj, ['attachedCallback', 'attributeChangedCallback'], obj, VRNode.prototype);
+  wrapMethods(newObj, ['attachedCallback', 'attributeChangedCallback'], obj, ANode.prototype);
   copyProperties(obj, newObj);
   return newObj;
 }
 
 /**
- * This wrapps some of the obj methods to call those on VRObject base clase
+ * This wrapps some of the obj methods to call those on AObject base clase
  * @param  {object} obj The objects that contains the methods that will be wrapped
  * @return {object} An object with the same properties as the input parameter but
  * with some of methods wrapped.
  */
-function wrapVRObjectMethods (obj) {
+function wrapAObjectMethods (obj) {
   var newObj = {};
-  var vrNodeMethods = ['attachedCallback', 'attributeChangedCallback'];
-  var vrObjectMethods = [
+  var ANodeMethods = ['attachedCallback', 'attributeChangedCallback'];
+  var AObjectMethods = [
     'attributeChangedCallback',
     'attachedCallback',
     'dettachedCallback'
   ];
-  wrapMethods(newObj, vrNodeMethods, obj, VRNode.prototype);
-  wrapMethods(newObj, vrObjectMethods, obj, VRObject.prototype);
+  wrapMethods(newObj, ANodeMethods, obj, ANode.prototype);
+  wrapMethods(newObj, AObjectMethods, obj, AObject.prototype);
   // Copies the remaining properties into the new object
   copyProperties(obj, newObj);
   return newObj;
@@ -134,8 +134,8 @@ function copyProperties (source, destination) {
   });
 }
 
-var VRNode = require('./core/vr-node');
-var VRObject = require('./core/vr-object');
+var ANode = require('./core/a-node');
+var AObject = require('./core/a-object');
 
 /**
  * Fires a custom event (as a stand-in for the spec'd `WebComponentsReady` event).
@@ -143,7 +143,7 @@ var VRObject = require('./core/vr-object');
 document.addEventListener('DOMContentLoaded', function () {
   // `setTimeout` for Chrome.
   setTimeout(function () {
-    document.dispatchEvent(new CustomEvent('vr-markup-ready', {
+    document.dispatchEvent(new CustomEvent('aframe-ready', {
       bubbles: true
     }));
   });

@@ -1,17 +1,17 @@
 /* global Event, HTMLElement, MutationObserver */
-require('../vr-register-element');
+require('../a-register-element');
 
-var VRUtils = require('../vr-utils');
+var utils = require('../a-utils');
 
 /**
  *
- * VRNode is the base class for all the VR markup
+ * ANode is the base class for all the aframe-core markup.
  * It manages loading of objects.
  *
  */
 
 module.exports = document.registerElement(
-  'vr-node',
+  'a-node',
   {
     prototype: Object.create(
       HTMLElement.prototype,
@@ -23,9 +23,9 @@ module.exports = document.registerElement(
 
         attachedCallback: {
           value: function () {
-            var sceneEl = document.querySelector('vr-scene');
+            var sceneEl = document.querySelector('a-scene');
             var mixins = this.getAttribute('mixin');
-            this.isVRNode = true;
+            this.isANode = true;
             this.sceneEl = sceneEl;
             this.mixinEls = [];
             this.mixinObservers = {};
@@ -111,7 +111,7 @@ module.exports = document.registerElement(
 
         registerMixin: {
           value: function (mixinId) {
-            var mixinEl = document.querySelector('vr-mixin#' + mixinId);
+            var mixinEl = document.querySelector('a-mixin#' + mixinId);
             if (!mixinEl) { return; }
             this.attachMixinListener(mixinEl);
             this.mixinEls.push(mixinEl);
@@ -181,7 +181,7 @@ module.exports = document.registerElement(
           value: function (name, detail) {
             var self = this;
             return name.split(' ').map(function (eventName) {
-              return VRUtils.fireEvent(self, eventName, detail);
+              return utils.fireEvent(self, eventName, detail);
             });
           },
           writable: window.debug

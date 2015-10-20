@@ -5,9 +5,9 @@ var id = 1;
 
 /**
  * Light component.
- * Passes up light attributes to the vr-object.
- * vr-object will pass the light to vr-scene.
- * vr-scene will keep track of all the lights, and handle updating materials.
+ * Passes up light attributes to the a-object.
+ * a-object will pass the light to a-scene.
+ * a-scene will keep track of all the lights, and handle updating materials.
  *
  * Light direction and position are determined by its entity's rotation and
  * position.

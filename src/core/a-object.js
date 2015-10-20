@@ -1,14 +1,14 @@
 /* global HTMLElement */
-require('../vr-register-element');
+require('../a-register-element');
 
 var THREE = require('../../lib/three');
-var VRComponents = require('./components').components;
-var VRNode = require('./vr-node');
-var VRUtils = require('../vr-utils');
+var AComponents = require('./components').components;
+var ANode = require('./a-node');
+var utils = require('../a-utils');
 
 /**
  *
- * VRObject represents all elements that are part of the 3D scene.
+ * AObject represents all elements that are part of the 3D scene.
  * They all have a position, rotation and a scale.
  *
  */
@@ -52,7 +52,7 @@ var proto = {
       // attribute value doesn't change. We return
       // if old and new values are the same
       var newValStr = newVal;
-      var component = VRComponents[attr];
+      var component = AComponents[attr];
       var light = this.light;
       // When creating objects programmatically and setting attributes
       // the object is not part of the scene until is inserted in the
@@ -130,7 +130,7 @@ var proto = {
   add: {
     value: function (el) {
       if (!el.object3D) {
-        VRUtils.error("Trying to add an object3D that doesn't exist");
+        utils.error("Trying to add an object3D that doesn'a exist");
       }
       this.object3D.add(el.object3D);
     },
@@ -141,7 +141,7 @@ var proto = {
     value: function () {
       var parent = this.parentEl = this.parentNode;
       var attachedToParent = this.attachedToParent;
-      if (!parent || attachedToParent || !parent.isVRNode) { return; }
+      if (!parent || attachedToParent || !parent.isANode) { return; }
       // To prevent an object to attach itself multiple times to the parent
       this.attachedToParent = true;
       parent.add(this);
@@ -162,7 +162,7 @@ var proto = {
       // Components initialization
       this.initComponents();
       // Call the parent class
-      VRNode.prototype.load.call(this);
+      ANode.prototype.load.call(this);
     },
     writable: window.debug
   },
@@ -184,7 +184,7 @@ var proto = {
 
   initComponents: {
     value: function () {
-      var components = Object.keys(VRComponents);
+      var components = Object.keys(AComponents);
       components.forEach(this.initComponent.bind(this));
     }
   },
@@ -221,15 +221,15 @@ var proto = {
       var hasAttribute = this.hasAttribute(name);
       // If it's not a component name or
       // If the component is already initialized
-      if (!VRComponents[name] || this.components[name]) { return; }
+      if (!AComponents[name] || this.components[name]) { return; }
       // If the component is not defined for the element
       if (!this.isComponentDefined(name)) { return; }
-      this.components[name] = new VRComponents[name].Component(this);
+      this.components[name] = new AComponents[name].Component(this);
       // If the attribute is not defined but has a default we set it
       if (!hasAttribute && hasDefault) {
         this.setAttribute(name, defaults[name]);
       }
-      VRUtils.log('Component initialized: %s', name);
+      utils.log('Component initialized: %s', name);
     }
   },
 
@@ -258,7 +258,7 @@ var proto = {
 
   setAttribute: {
     value: function (attr, value) {
-      var component = VRComponents[attr];
+      var component = AComponents[attr];
       if (component && typeof value === 'object') {
         value = component.stringifyAttributes(value);
       }
@@ -269,7 +269,7 @@ var proto = {
 
   getAttribute: {
     value: function (attr, defaultValue) {
-      var component = VRComponents[attr];
+      var component = AComponents[attr];
       var value = HTMLElement.prototype.getAttribute.call(this, attr, defaultValue);
       if (!component || typeof value !== 'string') { return value; }
       return component.parseAttributesString(value);
@@ -310,7 +310,7 @@ var proto = {
   },
 
   /**
-   * Registers light component data to the vr-scene.
+   * Registers light component data to the a-scene.
    * Attaches entity's position/rotation to the light component data.
    * Use entity's rotation as light's direction.
    *
@@ -330,6 +330,6 @@ var proto = {
 };
 
 module.exports = document.registerElement(
-  'vr-object',
-  { prototype: Object.create(VRNode.prototype, proto) }
+  'a-object',
+  { prototype: Object.create(ANode.prototype, proto) }
 );

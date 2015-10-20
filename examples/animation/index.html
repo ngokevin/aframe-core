@@ -3,37 +3,37 @@
   <head>
     <meta charset="utf-8">
     <title>Animation</title>
-    <meta name="description" content="Animation — vr-markup">
-    <link rel="stylesheet" type="text/css" href="../../style/vr-markup.css">
+    <meta name="description" content="Animation — aframe-core">
+    <link rel="stylesheet" type="text/css" href="../../style/aframe-core.css">
     <link rel="stylesheet" type="text/css" href="../_style/main.css">
-    <script src="../../build/vr-markup.js"></script>
+    <script src="../../build/aframe-core.js"></script>
   </head>
   <body>
-    <vr-assets>
-      <vr-mixin id="planet" geometry="primitive: sphere; radius: 0.5" material="color: green"></vr-mixin>
-      <vr-mixin id="orbit" attribute="rotation" to="0 0 360" repeat="indefinite" easing="linear" dur="3000"></vr-mixin>
-    </vr-assets>
-    <vr-scene>
-      <vr-object position="0 0 20" camera="fov: 45" controls="mouselook: true; locomotion: true">
-      </vr-object>
-      <vr-object rotation="0 0 0" position="0 0 -5">
-        <vr-object mixin="planet" geometry="radius: 3" material="color: yellow"></vr-object>
+    <a-assets>
+      <a-mixin id="planet" geometry="primitive: sphere; radius: 0.5" material="color: green"></a-mixin>
+      <a-mixin id="orbit" attribute="rotation" to="0 0 360" repeat="indefinite" easing="linear" dur="3000"></a-mixin>
+    </a-assets>
+    <a-scene>
+      <a-object position="0 0 20" camera="fov: 45" controls="mouselook: true; locomotion: true">
+      </a-object>
+      <a-object rotation="0 0 0" position="0 0 -5">
+        <a-object mixin="planet" geometry="radius: 3" material="color: yellow"></a-object>
 
-        <vr-object position="0 0 0">
-          <vr-animation mixin="orbit" dur="8000"></vr-animation>
-          <vr-object mixin="planet" material="color: red" position="8 0 0" geometry="radius: 1"></vr-object>
-        </vr-object>
+        <a-object position="0 0 0">
+          <a-animation mixin="orbit" dur="8000"></a-animation>
+          <a-object mixin="planet" material="color: red" position="8 0 0" geometry="radius: 1"></a-object>
+        </a-object>
 
-        <vr-object position="0 0 0">
-          <vr-animation mixin="orbit" dur="4000"></vr-animation>
-          <vr-object mixin="planet" material="color: blue" position="6 0 0"></vr-object>
-        </vr-object>
+        <a-object position="0 0 0">
+          <a-animation mixin="orbit" dur="4000"></a-animation>
+          <a-object mixin="planet" material="color: blue" position="6 0 0"></a-object>
+        </a-object>
 
-        <vr-object position="0 0 0">
-          <vr-animation mixin="orbit" dur="2000"></vr-animation>
-          <vr-object mixin="planet" position="4 0 0"></vr-object>
-        </vr-object>
-      </vr-object>
-    </vr-scene>
+        <a-object position="0 0 0">
+          <a-animation mixin="orbit" dur="2000"></a-animation>
+          <a-object mixin="planet" position="4 0 0"></a-object>
+        </a-object>
+      </a-object>
+    </a-scene>
   </body>
 </html>

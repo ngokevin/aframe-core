@@ -1,8 +1,8 @@
-require('../vr-register-element');
+require('../a-register-element');
 
 var TWEEN = require('tween.js');
-var VRNode = require('./vr-node');
-var utils = require('../vr-utils');
+var ANode = require('./a-node');
+var utils = require('../a-utils');
 
 var defaults = {
   attribute: 'rotation',
@@ -25,9 +25,9 @@ var easingFunctions = {
 };
 
 module.exports = document.registerElement(
-  'vr-animation', {
+  'a-animation', {
     prototype: Object.create(
-      VRNode.prototype, {
+      ANode.prototype, {
         attachedCallback: {
           value: function () {
             this.el = this.parentNode;

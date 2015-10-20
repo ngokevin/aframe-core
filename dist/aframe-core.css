@@ -3,7 +3,7 @@ html, body {
   overflow: hidden;
 }
 
-.vr-canvas {
+.a-canvas {
   position: absolute;
   top: 0;
   left: 0;

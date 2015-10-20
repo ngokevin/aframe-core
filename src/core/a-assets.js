@@ -1,16 +1,16 @@
 /* global Event, HTMLElement */
 
-var registerElement = require('../vr-register-element');
+var registerElement = require('../a-register-element');
 
 module.exports = registerElement(
-  'vr-assets',
+  'a-assets',
   {
     prototype: Object.create(
       HTMLElement.prototype,
       {
         attachedCallback: {
           value: function () {
-            document.addEventListener('vr-markup-ready', this.attachEventListeners.bind(this));
+            document.addEventListener('aframe-ready', this.attachEventListeners.bind(this));
           }
         },
 
@@ -27,7 +27,7 @@ module.exports = registerElement(
             }
 
             function countElement (node) {
-              if (!node.isVRNode) { return; }
+              if (!node.isANode) { return; }
               if (!node.hasLoaded) {
                 attachEventListener(node);
                 self.assetsPending++;
