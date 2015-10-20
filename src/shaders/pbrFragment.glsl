@@ -119,11 +119,8 @@ vec3 computeLight(vec3 albedoColor, vec3 specularColor, vec3 normal,
                   vec3 viewDir) {
   float NdL = clamp(dot(normal, lightDir), 0.0, 1.0);
 
-  // FIXME: originally clamping at 0.0 to 1.0. Temporarily changed to 0.1 to
-  // fix shader quirks. 0.0 sounds mathematically correct so find the real
-  // cause of the quirks. Quirks include spheres not lit from the back and
-  // faces of cubes change color when the viewDir crosses a certain angle.
-  float NdV = clamp(dot(normal, viewDir), 0.1, 1.0);
+  // Don't allow to be zero to avoid artifact.
+  float NdV = clamp(dot(normal, viewDir), 1e-5f, 1.0)
 
   vec3 h = normalize(lightDir + viewDir);
   float NdH = clamp(dot(normal, h), 0.0, 1.0);
