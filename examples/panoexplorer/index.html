@@ -3,26 +3,26 @@
   <head>
     <meta charset="utf-8">
     <title>Pano Explorer</title>
-    <meta name="description" content="Pano Explorer — vr-markup">
-    <link rel="stylesheet" type="text/css" href="../../style/vr-markup.css">
+    <meta name="description" content="Pano Explorer — aframe-core">
+    <link rel="stylesheet" type="text/css" href="../../style/aframe-core.css">
     <link rel="stylesheet" type="text/css" href="../_style/main.css">
-    <script src="../../build/vr-markup.js"></script>
+    <script src="../../build/aframe-core.js"></script>
   </head>
   <body>
-    <vr-scene>
+    <a-scene>
 
       <!-- Controls -->
-      <vr-object camera="fov: 45" controls="mouselook: true; locomotion: false">
-        <vr-object position="0 0 -1" geometry="primitive: ring; outerRadius: 0.02; innerRadius: 0.01;" material="color: white" raycaster></vr-object>
-      </vr-object>
+      <a-object camera="fov: 45" controls="mouselook: true; locomotion: false">
+        <a-object position="0 0 -1" geometry="primitive: ring; outerRadius: 0.02; innerRadius: 0.01;" material="color: white" raycaster></a-object>
+      </a-object>
 
       <!-- Pano -->
-      <vr-object id="holder" geometry="primitive: sphere; radius: 10;" material="url: images/city.jpg;"></vr-object>
+      <a-object id="holder" geometry="primitive: sphere; radius: 10;" material="url: images/city.jpg;"></a-object>
 
       <!-- Links to panos -->
-      <vr-object id="links" position="-1 -0.3 -2">
-      </vr-object>
-    </vr-scene>
+      <a-object id="links" position="-1 -0.3 -2">
+      </a-object>
+    </a-scene>
 
     <script>
       (function () {
@@ -57,11 +57,11 @@
           // Arrange the links horizontally without any overlaps
           var xPos = idx * width * 1.1;
 
-          var el = document.createElement('vr-object');
+          var el = document.createElement('a-object');
           el.setAttribute('position', {x: xPos});
           el.setAttribute('geometry', {primitive: "plane", width: width, height: height});
           el.setAttribute('material', {url: 'images/' + pano.thumb});
-          
+
           // When a link is clicked, change the displayed pano by changing the material attribute of the holder element
           el.addEventListener('click', function () {
             holder.setAttribute('material', {url: 'images/' + pano.url});

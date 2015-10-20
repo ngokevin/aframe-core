@@ -1,9 +1,9 @@
 /* global assert, expect, setup, sinon, suite, teardown, test */
-suite('vr-object', function () {
+suite('a-object', function () {
   'use strict';
 
   window.debug = true;
-  var VRObject = require('core/vr-object');
+  var AObject = require('core/a-object');
 
   setup(function () {
     this.sinon = sinon.sandbox.create();
@@ -15,9 +15,9 @@ suite('vr-object', function () {
 
   suite('createdCallback', function () {
     setup(function () {
-      this.sinon.spy(VRObject.prototype, 'createdCallback');
-      this.sinon.spy(VRObject.prototype, 'load');
-      this.el = document.createElement('vr-object');
+      this.sinon.spy(AObject.prototype, 'createdCallback');
+      this.sinon.spy(AObject.prototype, 'load');
+      this.el = document.createElement('a-object');
     });
 
     teardown(function () {
@@ -25,7 +25,7 @@ suite('vr-object', function () {
     });
 
     test('is called on element creation', function () {
-      sinon.assert.called(VRObject.prototype.createdCallback);
+      sinon.assert.called(AObject.prototype.createdCallback);
     });
 
     test('A 3D object is initialized', function () {
@@ -33,14 +33,14 @@ suite('vr-object', function () {
     });
 
     test('The load method is called', function () {
-      sinon.assert.called(VRObject.prototype.load);
+      sinon.assert.called(AObject.prototype.load);
     });
   });
 
   suite('attributeChangedCallback', function () {
     setup(function () {
-      this.sinon.spy(VRObject.prototype, 'attributeChangedCallback');
-      this.el = document.createElement('vr-object');
+      this.sinon.spy(AObject.prototype, 'attributeChangedCallback');
+      this.el = document.createElement('a-object');
     });
 
     teardown(function () {
@@ -53,7 +53,7 @@ suite('vr-object', function () {
       el.setAttribute('position', position);
       process.nextTick(function () {
         sinon.assert.calledWith(
-          VRObject.prototype.attributeChangedCallback,
+          AObject.prototype.attributeChangedCallback,
           'position', null, position);
         done();
       });
@@ -116,10 +116,10 @@ suite('vr-object', function () {
 
   suite('attachedCallback', function () {
     setup(function () {
-      this.sinon.spy(VRObject.prototype, 'attachedCallback');
+      this.sinon.spy(AObject.prototype, 'attachedCallback');
       var parent = this.parent = document.createElement('div');
       document.body.appendChild(parent);
-      var el = this.el = document.createElement('vr-object');
+      var el = this.el = document.createElement('a-object');
       sinon.stub(el, 'addToParent');
     });
 
@@ -132,7 +132,7 @@ suite('vr-object', function () {
       var el = this.el;
       this.parent.appendChild(el);
       process.nextTick(function () {
-        sinon.assert.called(VRObject.prototype.attachedCallback);
+        sinon.assert.called(AObject.prototype.attachedCallback);
         done();
       });
     });
@@ -160,10 +160,10 @@ suite('vr-object', function () {
 
   suite('detachedCallback', function () {
     setup(function () {
-      this.sinon.spy(VRObject.prototype, 'detachedCallback');
+      this.sinon.spy(AObject.prototype, 'detachedCallback');
       var parent = this.parent = document.createElement('div');
       document.body.appendChild(parent);
-      var el = this.el = document.createElement('vr-object');
+      var el = this.el = document.createElement('a-object');
       sinon.stub(el, 'addToParent');
       parent.appendChild(el);
       el.parentEl = {remove: function () {}};
@@ -181,7 +181,7 @@ suite('vr-object', function () {
       var el = this.el;
       this.parent.removeChild(el);
       process.nextTick(function () {
-        sinon.assert.called(VRObject.prototype.detachedCallback);
+        sinon.assert.called(AObject.prototype.detachedCallback);
         done();
       });
     });
@@ -192,7 +192,7 @@ suite('vr-object', function () {
       this.parent.removeChild(el);
       process.nextTick(function () {
         parentMock.verify();
-        sinon.assert.called(VRObject.prototype.detachedCallback);
+        sinon.assert.called(AObject.prototype.detachedCallback);
         done();
       });
     });
@@ -200,9 +200,9 @@ suite('vr-object', function () {
 
   suite('add', function () {
     setup(function () {
-      var parent = this.parent = document.createElement('vr-object');
+      var parent = this.parent = document.createElement('a-object');
       this.objectMock = this.sinon.mock(parent.object3D);
-      this.child = document.createElement('vr-object');
+      this.child = document.createElement('a-object');
     });
 
     teardown(function () {
@@ -221,7 +221,7 @@ suite('vr-object', function () {
     test('the child object3D is not added to the parent if it is not defined', function () {
       var parent = this.parent;
       var objectMock = this.objectMock;
-      var spy = this.sinon.spy(VRObject.prototype, 'add');
+      var spy = this.sinon.spy(AObject.prototype, 'add');
       objectMock.expects('add').never();
       this.child.object3D = null;
       try {
@@ -235,8 +235,8 @@ suite('vr-object', function () {
 
   suite('addToParent', function () {
     setup(function () {
-      var parent = this.parent = document.createElement('vr-object');
-      var child = this.child = document.createElement('vr-object');
+      var parent = this.parent = document.createElement('a-object');
+      var child = this.child = document.createElement('a-object');
       sinon.stub(parent, 'add');
       parent.appendChild(child);
     });
@@ -267,54 +267,54 @@ suite('vr-object', function () {
 
   suite('load', function () {
     setup(function () {
-      this.sinon.spy(VRObject.prototype, 'load');
+      this.sinon.spy(AObject.prototype, 'load');
     });
 
     test('load is called when the object is created', function () {
-      document.createElement('vr-object');
-      sinon.assert.called(VRObject.prototype.load);
+      document.createElement('a-object');
+      sinon.assert.called(AObject.prototype.load);
     });
 
     test('load returns if the object has already loaded', function () {
-      var el = document.createElement('vr-object');
-      this.sinon.spy(VRObject.prototype, 'addToParent');
-      this.sinon.spy(VRObject.prototype, 'initAttributes');
-      this.sinon.spy(VRObject.prototype, 'attributeChangedCallback');
+      var el = document.createElement('a-object');
+      this.sinon.spy(AObject.prototype, 'addToParent');
+      this.sinon.spy(AObject.prototype, 'initAttributes');
+      this.sinon.spy(AObject.prototype, 'attributeChangedCallback');
       el.load();
-      sinon.assert.notCalled(VRObject.prototype.addToParent);
-      sinon.assert.notCalled(VRObject.prototype.initAttributes);
-      sinon.assert.notCalled(VRObject.prototype.attributeChangedCallback);
+      sinon.assert.notCalled(AObject.prototype.addToParent);
+      sinon.assert.notCalled(AObject.prototype.initAttributes);
+      sinon.assert.notCalled(AObject.prototype.attributeChangedCallback);
     });
 
     test('load returns if the object has already loaded', function () {
-      var el = document.createElement('vr-object');
-      this.sinon.stub(VRObject.prototype, 'addToParent');
-      this.sinon.stub(VRObject.prototype, 'addAnimations');
-      this.sinon.stub(VRObject.prototype, 'initAttributes');
-      this.sinon.stub(VRObject.prototype, 'attributeChangedCallback');
+      var el = document.createElement('a-object');
+      this.sinon.stub(AObject.prototype, 'addToParent');
+      this.sinon.stub(AObject.prototype, 'addAnimations');
+      this.sinon.stub(AObject.prototype, 'initAttributes');
+      this.sinon.stub(AObject.prototype, 'attributeChangedCallback');
       el.load();
-      sinon.assert.notCalled(VRObject.prototype.addToParent);
-      sinon.assert.notCalled(VRObject.prototype.addAnimations);
-      sinon.assert.notCalled(VRObject.prototype.initAttributes);
-      sinon.assert.notCalled(VRObject.prototype.attributeChangedCallback);
+      sinon.assert.notCalled(AObject.prototype.addToParent);
+      sinon.assert.notCalled(AObject.prototype.addAnimations);
+      sinon.assert.notCalled(AObject.prototype.initAttributes);
+      sinon.assert.notCalled(AObject.prototype.attributeChangedCallback);
     });
 
     test('load runs if the object has not yet loaded', function () {
-      var el = document.createElement('vr-object');
+      var el = document.createElement('a-object');
       el.hasLoaded = false;
-      this.sinon.stub(VRObject.prototype, 'addToParent');
-      this.sinon.stub(VRObject.prototype, 'addAnimations');
-      this.sinon.stub(VRObject.prototype, 'initAttributes');
+      this.sinon.stub(AObject.prototype, 'addToParent');
+      this.sinon.stub(AObject.prototype, 'addAnimations');
+      this.sinon.stub(AObject.prototype, 'initAttributes');
       el.load();
-      sinon.assert.calledOnce(VRObject.prototype.addToParent);
-      sinon.assert.calledOnce(VRObject.prototype.addAnimations);
-      sinon.assert.calledOnce(VRObject.prototype.initAttributes);
+      sinon.assert.calledOnce(AObject.prototype.addToParent);
+      sinon.assert.calledOnce(AObject.prototype.addAnimations);
+      sinon.assert.calledOnce(AObject.prototype.initAttributes);
     });
   });
 
   suite('setAttribute', function () {
     setup(function () {
-      this.el = document.createElement('vr-object');
+      this.el = document.createElement('a-object');
     });
 
     teardown(function () {
@@ -354,9 +354,9 @@ suite('vr-object', function () {
 
   suite('remove', function () {
     setup(function () {
-      var parent = this.parent = document.createElement('vr-object');
+      var parent = this.parent = document.createElement('a-object');
       this.objectMock = this.sinon.mock(parent.object3D);
-      this.child = document.createElement('vr-object');
+      this.child = document.createElement('a-object');
     });
 
     teardown(function () {
@@ -375,8 +375,8 @@ suite('vr-object', function () {
 
   suite('initAttributes', function () {
     setup(function () {
-      this.el = document.createElement('vr-object');
-      this.sinon.spy(VRObject.prototype, 'attributeChangedCallback');
+      this.el = document.createElement('a-object');
+      this.sinon.spy(AObject.prototype, 'attributeChangedCallback');
     });
 
     teardown(function () {
@@ -426,13 +426,13 @@ suite('vr-object', function () {
       el.setAttribute('rotation', customRotation);
       el.setAttribute('scale', customScale);
       el.initAttributes();
-      sinon.assert.calledOnce(VRObject.prototype.attributeChangedCallback);
+      sinon.assert.calledOnce(AObject.prototype.attributeChangedCallback);
     });
   });
 
   suite('getAttribute', function () {
     setup(function () {
-      this.el = document.createElement('vr-object');
+      this.el = document.createElement('a-object');
     });
 
     teardown(function () {

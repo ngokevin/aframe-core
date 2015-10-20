@@ -1,6 +1,6 @@
 var registerComponent = require('../core/register-component').registerComponent;
 var THREE = require('../../lib/three');
-var VRUtils = require('../vr-utils');
+var utils = require('../a-utils');
 
 module.exports.Component = registerComponent('geometry', {
   defaults: {
@@ -61,7 +61,7 @@ module.exports.Component = registerComponent('geometry', {
           break;
         default:
           geometry = new THREE.Geometry();
-          VRUtils.warn('Primitive type not supported');
+          utils.warn('Primitive type not supported');
           break;
       }
       return geometry;

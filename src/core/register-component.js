@@ -1,5 +1,5 @@
 var Component = require('./component');
-var utils = require('../vr-utils');
+var utils = require('../a-utils');
 
 // To keep track of registered components
 var components = {};
