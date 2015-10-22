@@ -58,6 +58,7 @@ var proto = {
       // DOM
       if (!this.hasLoaded) { return; }
       if (component && typeof newVal !== 'string') {
+        if (newVal === null) { return; }  // If no default was set, this'll be `null`.
         newValStr = component.stringifyAttributes(newVal);
       }
       if (oldVal === newValStr) { return; }
