@@ -138,13 +138,26 @@ var VRNode = require('./core/vr-node');
 var VRObject = require('./core/vr-object');
 
 /**
- * Fires a custom event (as a stand-in for the spec'd `WebComponentsReady` event).
+ * Emits a custom event (as a stand-in for the spec'd `WebComponentsReady` event).
  */
-document.addEventListener('DOMContentLoaded', function () {
-  // `setTimeout` for Chrome.
-  setTimeout(function () {
-    document.dispatchEvent(new CustomEvent('vr-markup-ready', {
-      bubbles: true
-    }));
+function emitVRMarkupReady () {
+  document.dispatchEvent(new CustomEvent('vr-markup-ready', {
+    bubbles: true
+  }));
+}
+
+/**
+ * Attaches event listeners to fire `vr-markup-ready` event.
+ */
+function attachEventListeners () {
+  // For HTML imports.
+  document.addEventListener('HTMLImportsLoaded', emitVRMarkupReady);
+
+  // For no HTML imports.
+  document.addEventListener('DOMContentLoaded', function () {
+    // For Chrome.
+    setTimeout(emitVRMarkupReady);
   });
-});
+}
+
+attachEventListeners();
