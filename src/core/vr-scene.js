@@ -377,17 +377,36 @@ var VRScene = module.exports = registerElement(
         },
 
         /**
+         * Removes light from scene.
+         *
+         * @param {object} light
+         */
+        unregisterLight: {
+          value: function (light) {
+            delete this.lights[light.id];
+            // true flag tells materials to recompile their shaders since
+            // number of lights changed.
+            this.updateMaterials(true);
+          }
+        },
+
+        /**
          * Registers light to the scene for the scene to keep track.
          * Light is kept track in a map such that it can be looked up and
          * updated in place if necessary.
          * Doing so will update all materials in the scene.
          *
-         * @param light {object} light attributes (e.g., color, intensity).
+         * @param {object} light - Light attributes (e.g., color, intensity).
          */
         registerLight: {
           value: function (light) {
+            var doRecompileShader = false;
+            if (!this.lights[light.id]) {
+              // Number of lights changed, tell materials to recompile shader.
+              doRecompileShader = true;
+            }
             this.lights[light.id] = light;
-            this.updateMaterials();
+            this.updateMaterials(doRecompileShader);
           }
         },
 
@@ -395,7 +414,7 @@ var VRScene = module.exports = registerElement(
          * Transforms this.lights into an array. Uses default lights if no
          * lights have been registered.
          *
-         * @param light {array} - array of lights.
+         * @param light {array} - Array of lights.
          */
         getLightsAsArray: {
           value: function () {
@@ -413,8 +432,8 @@ var VRScene = module.exports = registerElement(
          * Registers material component for the scene to keep track.
          * Scene keeps track of materials in case of needed updates.
          *
-         * @param id {number} ID of the material to keep track.
-         * @param material {object} material component instance.
+         * @param {number} id - ID of the material to keep track.
+         * @param {object} material - Material component instance.
          */
         registerMaterial: {
           value: function (id, material) {
@@ -426,15 +445,20 @@ var VRScene = module.exports = registerElement(
         /**
          * Updates all materials in the scene with the scene's lights.
          * Prescribes a default light if no lights are set.
+         *
+         * @param {boolean} doRecompileShader - Tells material to recompile its
+         *         shader. Useful when we are removing a light, and the
+         *         default lighting kicks in, making it difficult for the
+         *         material to tell if the number of lights changed.
          */
         updateMaterials: {
-          value: function () {
+          value: function (doRecompileShader) {
             var self = this;
             // Convert this.lights to array.
             var lightsArr = self.getLightsAsArray();
             // Iterate through all materials to update lights.
             Object.keys(self.materials).forEach(function (id) {
-              self.materials[id].updateLights(lightsArr);
+              self.materials[id].updateLights(lightsArr, doRecompileShader);
             });
           }
         }
