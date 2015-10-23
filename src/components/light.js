@@ -15,14 +15,16 @@ var id = 1;
  * To support PBR, currently not using three.js lights. PBR materials are not
  * yet officially implemented by three.js.
  *
- * @param {string} color - light color.
+ * @param {string} color - light base color.
  * @param {number} intensity - light strength.
+ * @param {string} type - light type (e.g., directional, ambient).
  */
 module.exports.Component = registerComponent('light', {
   defaults: {
     value: {
-      color: '#ffffff',
-      intensity: 1.0
+      color: '#FFFFFF',
+      intensity: 1.0,
+      type: 'directional'
     }
   },
 
@@ -42,13 +44,15 @@ module.exports.Component = registerComponent('light', {
    */
   update: {
     value: function () {
-      if (!this.data) { return; }
+      var data = this.data;
+      if (!data) { return; }
 
-      var color = new THREE.Color(this.data.color);
+      var color = new THREE.Color(data.color);
       this.el.registerLight({
         id: this.id,
         color: new THREE.Vector3(color.r, color.g, color.b),
-        intensity: this.data.intensity
+        intensity: data.intensity,
+        type: data.type
       });
     }
   }

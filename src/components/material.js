@@ -32,7 +32,8 @@ module.exports.Component = registerComponent('material', {
   init: {
     value: function () {
       this.id = this.id || id++;
-      this.lights = this.lights || [];
+      this.ambientLights = [];
+      this.directedLights = [];
 
       // Initialize material.
       this.el.object3D.material = this.getMaterial();
@@ -42,13 +43,24 @@ module.exports.Component = registerComponent('material', {
     }
   },
 
+  /**
+   * Material updated.
+   * TODO: be able to find out what attribute is being changed.
+   */
   update: {
     value: function () {
-      var material = this.el.object3D.material = this.getMaterial();
+      var self = this;
+      var material = self.el.object3D.material;
 
-      // Update PBR uniforms.
+      // Material type changed. Recreate material. Should we support this?
+      if (material.type === MATERIAL_TYPE__TEXTURE && !self.data.src ||
+          material.type === MATERIAL_TYPE__PBR && self.data.src) {
+        self.el.object3D.material = self.getMaterial();
+      }
+
+      // Update PBR uniform if material is PBR.
       if (material.type === MATERIAL_TYPE__PBR) {
-        var newUniform = this.getPBRUniforms();
+        var newUniform = self.getPBRUniforms();
         Object.keys(newUniform).forEach(function (key) {
           if (material.uniforms[key] !== newUniform[key]) {
             material.uniforms[key] = newUniform[key];
@@ -60,7 +72,8 @@ module.exports.Component = registerComponent('material', {
   },
 
   /**
-   * Store updated lights. Not used for texture materials.
+   * Store updated lights (ambient vs. directed lights separately).
+   * Not used for texture materials.
    * If the number of lights changed, recreate material.
    * Else just update the material.
    *
@@ -68,23 +81,30 @@ module.exports.Component = registerComponent('material', {
    */
   updateLights: {
     value: function (lights) {
-      var previousLights = this.lights;
-      this.lights = lights || [];
+      // Update stored lights.
+      var oldNumDirectedLights = this.directedLights.length;
+      var ambientLights = this.ambientLights = [];
+      var directedLights = this.directedLights = [];
+      lights.forEach(function (light) {
+        if (light.type === 'ambient') { return ambientLights.push(light); }
+        directedLights.push(light);
+      });
 
-      if (this.el.object3D.material.type === MATERIAL_TYPE__TEXTURE) {
-        // Lights not used for texture materials. Store lights anyways.
-        return;
-      }
-      if (previousLights.length === this.lights.length) {
-        // Attribute of light changed, update uniforms.
+      if (oldNumDirectedLights === directedLights.length) {
+        // Attributes of lights changed, update uniforms.
         this.update();
       } else {
-        // Number of lights changed, need to recompile the shader.
+        // Number of lights changed, recompile shader.
         this.el.object3D.material = this.getMaterial();
       }
     }
   },
 
+  /*
+   * Determines which type of material to create.
+   *
+   * @returns material {object} depending on whether there is a texture.
+   */
   getMaterial: {
     value: function () {
       var currentMaterial = this.el.object3D.material;
@@ -124,7 +144,7 @@ module.exports.Component = registerComponent('material', {
         vertexShader: pbrVertexShader(),
         fragmentShader: pbrFragmentShader({
           // Keep this param > 1 since GLSL won't allow arrays w/ length=0.
-          lightArraySize: this.lights.length || 1
+          lightArraySize: this.directedLights.length || 1
         }),
         uniforms: this.getPBRUniforms()
       });
@@ -138,14 +158,13 @@ module.exports.Component = registerComponent('material', {
    */
   getPBRUniforms: {
     value: function () {
-      // Format baseColor to a vector.
-      var color = new THREE.Color(this.data.color);
-      color = new THREE.Vector3(color.r, color.g, color.b);
+      var ambientLights;
+      var materialColor = colorToVector3(this.data.color);
 
       var uniforms = {
         baseColor: {
           type: 'v3',
-          value: color
+          value: materialColor
         },
         metallic: {
           type: 'f',
@@ -161,12 +180,21 @@ module.exports.Component = registerComponent('material', {
         }
       };
 
-      // Add lights to uniform.
-      if (this.lights.length) {
+      // Add ambient lights to uniform. We can compute its contributions here.
+      ambientLights = this.ambientLights.map(function (ambientLight) {
+        return ambientLight.color;
+      });
+      uniforms.ambientLight = {
+        type: 'v3',
+        value: calculateAmbientLight(ambientLights, materialColor)
+      };
+
+      // Add directed lights to uniform.
+      if (this.directedLights.length) {
         uniforms.lightColors = {
           type: '3fv',
           value: flattenVector3Array(
-            this.lights.map(function (light) {
+            this.directedLights.map(function (light) {
               return light.color;
             })
           )
@@ -174,14 +202,14 @@ module.exports.Component = registerComponent('material', {
         uniforms.lightDirections = {
           type: '3fv',
           value: flattenVector3Array(
-            this.lights.map(function (light) {
+            this.directedLights.map(function (light) {
               return light.direction;
             })
           )
         };
         uniforms.lightIntensities = {
           type: 'iv1',
-          value: this.lights.map(function (light) {
+          value: this.directedLights.map(function (light) {
             // TODO: accept floats (e.g., 1.0), but JS keeps changing 1.0 -> 1.
             return Math.round(light.intensity);
           })
@@ -189,7 +217,7 @@ module.exports.Component = registerComponent('material', {
         uniforms.lightPositions = {
           type: '3fv',
           value: flattenVector3Array(
-            this.lights.map(function (light) {
+            this.directedLights.map(function (light) {
               return light.position;
             })
           )
@@ -222,11 +250,37 @@ module.exports.Component = registerComponent('material', {
 });
 
 /**
+ * Calculates (diffuse) ambient light given the material diffuse color.
+ *
+ * @param {array} ambientLights - ambient lights, as array of Vector3s.
+ * @param {object} materialColor - material base color, as Vector3.
+ * @returns {object} total ambient light, as Vector3.
+ */
+function calculateAmbientLight (ambientLights, materialColor) {
+  var totalAmbientLight = new THREE.Vector3(0.0);
+  ambientLights.forEach(function (ambientLight) {
+    totalAmbientLight.add(ambientLight.clone().multiply(materialColor));
+  });
+  return totalAmbientLight;
+}
+
+/**
+ * Converts color to a Vector3.
+ *
+ * @param {string} colorStr - color, most formats supported.
+ * @returns {object} vector3 representation of color (r, g, b).
+ */
+function colorToVector3 (colorStr) {
+  var color = new THREE.Color(colorStr);
+  return new THREE.Vector3(color.r, color.g, color.b);
+}
+
+/**
  * Flattens an array of three-dimensional vectors into a single array.
  * Used to pass multiple vectors into the shader program using type 3fv.
  *
  * @param {array} vector3s - array of THREE.Vector3, the `s` denotes plural.
- * @returns {array} arr - float values.
+ * @returns {array} float values.
  */
 function flattenVector3Array (vector3s) {
   var arr = [];

@@ -14,15 +14,21 @@ var VRScene = module.exports = registerElement(
       VRNode.prototype, {
         defaults: {
           value: {
-            lights: {
-              // Default directional light.
-              0: {
+            lights: [
+              {
+                // Default directional light.
                 color: new THREE.Vector3(1.0, 1.0, 1.0),
                 direction: new THREE.Vector3(-0.5, 1.0, 0.5),
+                intensity: 2.0,
                 position: new THREE.Vector3(0, 0, 0),
-                intensity: 5.0
+                type: 'directional'
+              },
+              {
+                // Default global ambient light.
+                color: new THREE.Vector3(0.2, 0.2, 0.2),
+                type: 'ambient'
               }
-            }
+            ]
           }
         },
 
