@@ -28,7 +28,7 @@ module.exports.Component = registerComponent('controls', {
 
       this.prevTime = Date.now();
       // The canvas where the scene is painted
-      this.canvasEl = document.querySelector('vr-scene').canvas;
+      this.canvasEl = document.body.querySelector('.vr-canvas');
 
       // To keep track of the pressed keys
       this.keys = {};

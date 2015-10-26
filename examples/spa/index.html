@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Single-Page App</title>
+    <meta name="description" content="Single-Page App — vr-markup">
+    <link rel="stylesheet" type="text/css" href="../../style/vr-markup.css">
+    <link rel="stylesheet" type="text/css" href="../_style/main.css">
+    <script src="../../build/vr-markup.js"></script>
+  </head>
+  <body>
+    <vr-assets>
+    </vr-assets>
+    <vr-scene>
+      <vr-object position="0 0 20" camera="fov: 45" controls="mouselook: true; locomotion: true"></vr-object>
+    </vr-scene>
+    <main>
+    </main>
+    <script>
+      (function () {
+        var counter = 0;
+        var worlds = [
+          '../animation/',
+          '../cursor/',
+          '../texture/'
+        ];
+        var main = document.querySelector('main');
+
+        function injectAsHTML(el) {
+          /*
+          // Optimal method where we reuse the elements and actually use new camera.
+          // Dependent on https://github.com/MozVR/vr-markup/issues/263
+          var fragment = document.createDocumentFragment();
+          fragment.appendChild(el);
+          var assetsEl = fragment.querySelector('vr-assets');
+          var sceneEl = fragment.querySelector('vr-scene');
+          if (assetsEl) {
+            var currentAssetsEl = document.querySelector('vr-assets');
+            if (currentAssetsEl) {
+              currentAssetsEl.innerHTML = assetsEl.innerHTML;
+            }
+            assetsEl.parentNode.removeChild(assetsEl);
+          }
+          if (sceneEl) {
+            var currentSceneEl = document.querySelector('vr-scene');
+            if (currentSceneEl) {
+              currentSceneEl.innerHTML = sceneEl.innerHTML;
+            }
+            sceneEl.parentNode.removeChild(sceneEl);
+          }
+          var currentMainEl = document.querySelector('main');
+          if (currentMainEl) {
+            currentMainEl.innerHTML = fragment.innerHTML;
+          }
+          */
+          main.innerHTML = el.innerHTML;
+        }
+
+        function loadWorld(idx) {
+          // Could just use `XMLHttpRequest` directly, but THREE's `XHRLoader`
+          // does nice caching.
+          var loader = new vrMarkup.THREE.XHRLoader();
+          loader.setCrossOrigin('');
+          loader.setResponseType('document');
+          loader.load(worlds[idx], function (res) {
+            injectAsHTML(res.body);
+          }, function () {}, function (res) {
+            throw new Error('Could not load "' + worlds[idx] + '": ' + res.statusText);
+            console.error(res);
+          });
+        }
+
+        loadWorld(counter);
+
+        window.addEventListener('keydown', function (e) {
+          if (e.keyCode === 37) {
+            counter--;
+          }
+          if (e.keyCode === 39) {
+            counter++;
+          }
+          if (e.keyCode === 37 || e.keyCode === 39) {
+            if (counter < 0) {
+              counter = worlds.length - 1;
+            }
+            if (counter >= worlds.length) {
+              counter = 0;
+            }
+            loadWorld(counter);
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
