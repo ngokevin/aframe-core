@@ -1,4 +1,4 @@
-/* global CustomEvent */
+/* global CustomEvent, HTMLElement */
 
 /**
  * Fires a custom DOM event.
@@ -8,13 +8,155 @@
  * @param {Object=} [data={bubbles: true, {detail: <el>}}]
  *   Data to pass as `customEventInit` to the event.
  */
-module.exports.fireEvent = function (el, name, data) {
+var fireEvent = module.exports.fireEvent = function (el, name, data) {
   data = data || {};
   data.detail = data.detail || {};
   data.detail.target = data.detail.target || el;
   var evt = new CustomEvent(name, data);
   evt.target = el;
   el.dispatchEvent(evt);
+};
+
+/**
+ * Emits a custom DOM event.
+ *
+ * @param {String} name
+ *   Name of event (use a space-delimited string for multiple events).
+ * @param {Object=} [detail={}]
+ *   Custom data to pass as `detail` to the event.
+ * @example
+
+  var cube = document.querySelector('vr-cube');
+  cube.once('selected', function () {
+    console.log('selected');
+  });
+  cube.emit('selected');  // 'selected'
+
+ * @see {@link https://github.com/WebReflection/micro-env/tree/master/src/DOM} for borrowed inspiration
+ */
+HTMLElement.prototype.emit = function (name, detail) {
+  var el = this;
+  detail = detail || {};
+  var data = {
+    bubbles: true,
+    detail: detail
+  };
+  var evt;
+  var events = name.split(' ').map(emitEach);
+  function emitEach (eventName) {
+    evt = fireEvent(el, eventName, data);
+    if (!el.emitted) { el.emitted = {}; }
+    if (!(eventName in el.emitted)) { el.emitted[eventName] = []; }
+    el.emitted[eventName].push(evt);
+    return evt;
+  }
+  return events;
+};
+
+/**
+ * Adds an event listener (or calls a callback).
+ *
+ * @param {String} eventName Name of the event.
+ * @param {Function} cb Callback function to call.
+ * @param {Function} [useCapture=false] Whether to initiate capture.
+ */
+HTMLElement.prototype.on = function (eventName, cb) {
+  if (this.emitted && eventName in this.emitted) { return cb(); }
+  this.addEventListener.apply(this, arguments);
+  return this;
+};
+
+/**
+ * Adds an event listener once (or calls a callback once) for a particular event.
+ *
+ * @param {String} eventName Name of the event.
+ * @param {Function} cb Callback function to call.
+ * @param {Function} [useCapture=false] Whether to initiate capture.
+ */
+HTMLElement.prototype.once = function (eventName, cb, useCapture) {
+  if (this.emitted && this.emitted[eventName].length > 1) { return; }
+  useCapture = !!useCapture;
+  var onceCb = function () {
+    // Ensure this event listener doesn't get called again.
+    this.off(eventName, cb, useCapture);
+    cb.apply(this, arguments);
+  };
+  return this.on(eventName, onceCb, useCapture);
+};
+
+/**
+ * Removes an event listener for a particular event.
+ *
+ * @param {Element} el Element from which to remove event listener.
+ * @param {String} eventName Name of the event.
+ * @param {Function} cb Callback function to call.
+ * @example
+
+    function click () {
+      this.setAttribute('clicked', 'true');
+    }
+    document.body.on('click', click);
+    document.body.off('click', click);
+    document.body.emit('click');  // nothing happens
+
+*/
+HTMLElement.prototype.off = function (eventName) {
+  if (this.emitted && eventName in this.emitted) {
+    delete this.emitted[eventName];
+  }
+  this.removeEventListener.apply(this, arguments);
+  return this;
+};
+
+/**
+ * Emits a custom DOM event.
+ *
+ * @param {String} name
+ *   Name of event (use a space-delimited string for multiple events).
+ * @param {Object=} [detail={}]
+ *   Custom data to pass as `detail` to the event.
+ * @example
+ *
+ *   var cube = document.querySelector('vr-cube');
+ *   cube.once('selected', function () {
+ *     console.log('selected');
+ *   });
+ *   cube.emit('selected');  // 'selected'
+ *
+ */
+HTMLElement.prototype.emit = function (name, detail) {
+  var el = this;
+  detail = detail || {};
+  var data = {
+    bubbles: true,
+    detail: detail
+  };
+  var events = name.split(' ').map(emitEach);
+  function emitEach (eventName) {
+    return fireEvent(el, eventName, data);
+  }
+  return events;
+};
+
+/**
+ * Returns a closure that emits a DOM event.
+ *
+ * @param {String} el
+ *   Element on which to fire the event.
+ * @param {String} name
+ *   Name of event (use a space-delimited string for multiple events).
+ * @param {Object} detail
+ *   Custom data (optional) to pass as `detail` if the event is to
+ *   be a `CustomEvent`.
+ */
+var emitter = function (el, name, detail) {
+  return function () {
+    el.emit(name, detail);
+  };
+};
+
+HTMLElement.prototype.emitter = function (name, detail) {
+  return emitter(this, name, detail);
 };
 
 /**

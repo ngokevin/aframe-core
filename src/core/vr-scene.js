@@ -7,8 +7,8 @@ var THREE = require('../../lib/three');
 var RStats = require('../../lib/vendor/rStats');
 var Wakelock = require('../../lib/vendor/wakelock/wakelock');
 var TWEEN = require('tween.js');
-var VRNode = require('./vr-node');
 var utils = require('../vr-utils');
+var VRNode = require('./vr-node');
 
 var DEFAULT_LIGHT_ATTR = 'data-aframe-default-light';
 
@@ -62,7 +62,7 @@ var VRScene = module.exports = registerElement(
             var assets = document.querySelector('vr-assets');
             if (assets && !assets.hasLoaded) {
               this.pendingElements++;
-              attachEventListener(assets);
+              assets.on('loaded', elementLoaded.bind(assets));
             }
 
             var children = this.querySelectorAll('*');
@@ -71,17 +71,7 @@ var VRScene = module.exports = registerElement(
             function countElement (node) {
               if (!isNode(node)) { return; }
               self.pendingElements++;
-              if (!node.hasLoaded) {
-                attachEventListener(node);
-              } else {
-                elementLoaded(node);
-              }
-            }
-
-            function attachEventListener (node) {
-              node.addEventListener('loaded', function () {
-                elementLoaded(node);
-              });
+              node.on('loaded', elementLoaded);
             }
           }
         },

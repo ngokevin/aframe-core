@@ -4,9 +4,9 @@ var registerElement = re.registerElement;
 var isNode = re.isNode;
 
 var THREE = require('../../lib/three');
+var utils = require('../vr-utils');
 var VRComponents = require('./components').components;
 var VRNode = require('./vr-node');
-var VRUtils = require('../vr-utils');
 
 /**
  *
@@ -127,7 +127,7 @@ var proto = {
   add: {
     value: function (el) {
       if (!el.object3D) {
-        VRUtils.error("Trying to add an object3D that doesn't exist");
+        utils.error("Trying to add an object3D that doesn't exist");
       }
       this.object3D.add(el.object3D);
     },
@@ -147,8 +147,9 @@ var proto = {
       // If the parent isn't a VR node but eventually it will be
       // when a templated element is created, we want to attach
       // this element to the parent then
-      parent.addEventListener('nodeready', attach);
+      parent.on('nodeready', attach);
       function attach () {
+        if (self.attachedToParent) { return; }
         // To prevent an object to attach itself multiple times to the parent
         self.attachedToParent = true;
         parent.add(self);
@@ -229,7 +230,7 @@ var proto = {
       if (!this.isComponentDefined(name) && !isDependency) { return; }
       this.initComponentDependencies(name);
       this.components[name] = new VRComponents[name].Component(this);
-      VRUtils.log('Component initialized: %s', name);
+      utils.log('Component initialized: %s', name);
     }
   },
 
