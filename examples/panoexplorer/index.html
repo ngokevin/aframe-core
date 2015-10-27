@@ -62,8 +62,18 @@
         var height = 1.0;
         var selectedLinkEl;
 
+        scene.addEventListener('loaded', load);
+        if (scene.hasLoaded) {
+          load();
+        }
+
+        function load () {
+          panos.forEach(addPano);
+          selectPano(1);
+        }
+
         // Create a link for each item in panos[]
-        panos.forEach(function (pano, idx) {
+        function addPano (pano, idx) {
           // Arrange the links horizontally without any overlaps
           var xPos = idx * width * 1.5;
 
@@ -74,13 +84,20 @@
           el.setAttribute('material', {url: 'images/' + pano.thumb});
           panos[idx].el = el;
 
+          el.addEventListener('stateadded', function (e) {
+            if (el === selectedLinkEl && e.detail.state === 'hovered') {
+              // We want the `selected` priority to take precedence
+              // over the `hovered` - otherwise it looks silly.
+              el.removeState('hovered');
+            }
+          });
+
           // When a link is clicked, change the displayed pano by changing the material attribute of the holder element
           el.addEventListener('click', handleClick);
 
           // Add the link to the links element
           links.appendChild(el);
-
-        });
+        }
 
         if (scene.hasLoaded) {
           selectPano(1);
@@ -93,7 +110,7 @@
           selectPano(index);
         }
 
-        function selectPano(index) {
+        function selectPano (index) {
           var pano = panos[index];
           var linkEL = pano.el;
           if (selectedLinkEl === pano.el) { return; }
@@ -102,10 +119,7 @@
           selectedLinkEl = linkEL;
           selectedLinkEl.addState('selected');
         }
-
       })();
-
     </script>
-
   </body>
 </html>
