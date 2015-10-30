@@ -376,6 +376,8 @@ var VRScene = module.exports = registerElement(
               new THREE.WebGLRenderer({canvas: canvas, antialias: true,
                                        alpha: true});
             renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.sortObjects = false;
             VRScene.renderer = renderer;
             this.stereoRenderer = new THREE.VREffect(renderer);

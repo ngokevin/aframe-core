@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Shadow Component</title>
+  <meta name="description" content="Shadow Component">
+  <link rel="stylesheet" type="text/css" href="../../style/vr-markup.css">
+  <link rel="stylesheet" type="text/css" href="../_style/main.css">
+  <script src="../../build/vr-markup.js"></script>
+</head>
+
+<body>
+  <vr-assets>
+    <vr-mixin id="wall"
+              geometry="primitive: box; height: 30; width: 30; depth: 2"
+              material="color: #666; metalness: .8" shadow="receive: true">
+    </vr-mixin>
+  </vr-assets>
+  <vr-scene stats="true">
+    <!-- Camera. -->
+    <vr-object position="0 0 40" camera="fov: 45"
+               controls="mouselook: true; locomotion: true"></vr-object>
+
+    <!-- Lights. -->
+    <vr-object light="color: #777; type: ambient"></vr-object>
+    <vr-object geometry="primitive: sphere; radius: 1" material="color: #FFF"
+               light="castShadow: true; intensity: 1; shadowBias: 0.01
+                      shadowCameraFar: 30; shadowCameraNear: 1;
+                      shadowCameraFov: 50; type: point"
+               position="0 0 0" rotation="0 0 0">
+    </vr-object>
+
+    <!-- Torus. -->
+    <vr-object geometry="primitive: torusKnot; radius: 7; tube: 1;
+                         segments: 150; tubularSegments: 20"
+               material="color: red" shadow="cast: true; receive: true">
+      <vr-animation attribute="rotation" to="0 360 0"
+                    repeat="indefinite" easing="linear" dur="48000">
+      </vr-animation>
+    </vr-object>
+
+    <!-- Walls. -->
+    <vr-object mixin="wall" position="0 0 -10"></vr-object>
+    <vr-object mixin="wall" position="-10 0 0" rotation="0 90 0"></vr-object>
+    <vr-object mixin="wall" position="10 0 0" rotation="0 90 0"></vr-object>
+    <vr-object mixin="wall" position="0 10 0" rotation="90 0 0"></vr-object>
+    <vr-object mixin="wall" position="0 -10 0" rotation="90 0 0"></vr-object>
+  </vr-scene>
+</body>
+</html>
