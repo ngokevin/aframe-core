@@ -13,13 +13,10 @@ module.exports.Component = registerComponent('mouse-input', {
 
   setupControls: {
     value: function () {
-      var scene = this.el.sceneEl;
-      scene.addBehavior(this);
-
-      // element which we are capturing mouse events on
+      // Element which we are capturing mouse events on
       this.canvasEl = document.querySelector('vr-scene').canvas;
 
-      // traks if mouse button is down.
+      // Traks if mouse button is down.
       this.mouseDown = false;
 
       this.pitchObject = new THREE.Object3D();
