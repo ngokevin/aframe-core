@@ -9,7 +9,7 @@ var defaults = {
   rotationSpeed: 0.05
 };
 
-module.exports.Component = registerComponent('keyboard-controls', {
+module.exports.Component = registerComponent('keyboard-input', {
   init: {
     value: function () {
       var scene = this.el.sceneEl;
@@ -18,7 +18,7 @@ module.exports.Component = registerComponent('keyboard-controls', {
       this.prevTime = Date.now();
 
       // Object which is being controlled.
-      this.object3D = this.el.object3D;
+      this.object3D = new THREE.Object3D();
 
       // To keep track of the pressed keys.
       this.keys = {};

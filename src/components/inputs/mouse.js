@@ -2,11 +2,11 @@ var registerComponent = require('../../core/register-component').registerCompone
 var THREE = require('../../../lib/three');
 var PI_2 = Math.PI / 2;
 
-module.exports.Component = registerComponent('mouse-controls', {
+module.exports.Component = registerComponent('mouse-input', {
   init: {
     value: function () {
       // Object which is being controlled.
-      this.object3D = this.el.object3D;
+      this.object3D = new THREE.Object3D();
       this.setupControls();
     }
   },
