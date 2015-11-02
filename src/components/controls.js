@@ -142,6 +142,11 @@ module.exports.Component = registerComponent('controls', {
         keys = keyboard.keys;
       }
 
+      // Reset viewport
+      if (keys[90]) { // Z
+        hmd.resetSensor();
+      }
+
       // Quarternion which we will compose on
       var finalQ = new THREE.Quaternion().copy(this.resetQuaternion);
 

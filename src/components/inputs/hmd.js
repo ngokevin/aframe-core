@@ -17,6 +17,12 @@ module.exports.Component = registerComponent('hmd-input', {
     }
   },
 
+  resetSensor: {
+    value: function () {
+      this.controls.resetSensor();
+    }
+  },
+
   update: {
     value: function () {
       this.controls.update();
