@@ -1,5 +1,6 @@
 var registerComponent = require('../../core/register-component').registerComponent;
 var THREE = require('../../../lib/three');
+var PI_2 = Math.PI / 2;
 
 module.exports.Component = registerComponent('mouse-controls', {
   init: {
@@ -21,32 +22,12 @@ module.exports.Component = registerComponent('mouse-controls', {
       // traks if mouse button is down.
       this.mouseDown = false;
 
+      this.pitchObject = new THREE.Object3D();
+      this.yawObject = new THREE.Object3D();
+      this.yawObject.position.y = 10;
+      this.yawObject.add(this.pitchObject);
+
       this.attachMouseListeners();
-    }
-  },
-
-  update: {
-    value: function () {
-      var q = this.object3D.quaternion;
-
-      // Unit vectors
-      var headX = new THREE.Vector3(-1, 0, 0).applyQuaternion(q);
-      headX.normalize();
-
-      // Rotate around the world Y coordinate, so we don't apply the quaternion.
-      var headY = new THREE.Vector3(0, -1, 0);
-      headY.normalize();
-
-      var bodyDeltaY = 0;
-      var headDeltaX = 0;
-
-      if (this.mouseDown) {
-        bodyDeltaY += this.mouseDeltaX * 0.001;
-        headDeltaX += this.mouseDeltaY * 0.001;
-      }
-
-      q.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(headY, bodyDeltaY), q);
-      q.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(headX, headDeltaX), q);
     }
   },
 
@@ -72,8 +53,22 @@ module.exports.Component = registerComponent('mouse-controls', {
 
   onMouseMove: {
     value: function (event) {
-      this.mouseDeltaX = event.movementX || event.mozMovementX || 0;
-      this.mouseDeltaY = event.movementY || event.mozMovementY || 0;
+      var q = this.object3D.quaternion;
+
+      var pitchObject = this.pitchObject;
+      var yawObject = this.yawObject;
+      var mouseDown = this.mouseDown;
+
+      if (!mouseDown) { return; }
+
+      var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+      var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+
+      yawObject.rotation.y -= movementX * 0.001;
+      pitchObject.rotation.x -= movementY * 0.001;
+      pitchObject.rotation.x = Math.max(-PI_2, Math.min(PI_2, pitchObject.rotation.x));
+
+      q.multiplyQuaternions(yawObject.quaternion, pitchObject.quaternion);
     }
   }
 });
