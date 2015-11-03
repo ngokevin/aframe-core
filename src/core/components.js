@@ -12,4 +12,5 @@ require('../components/position');
 require('../components/raycaster');
 require('../components/rotation');
 require('../components/scale');
+require('../components/shadow');
 require('../components/visible');
