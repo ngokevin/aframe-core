@@ -13,29 +13,50 @@ require('document-register-element');
  It wraps some of the prototype methods
  of the created element to make sure that the corresponding
  functions in the base classes (VRObject and VRNode) are also
- invoked. The method in the base class is always call before the
+ invoked. The method in the base class is always called before the
  one in the derived object.
 
 */
 var registerElement = document.registerElement;
 
+var knownTags = module.exports.knownTags = {};
+
+var addTagName = function (tagName) {
+  knownTags[tagName.toLowerCase()] = true;
+};
+
 /**
- * @param  {string} tagName The name of the tag to register
- * @param  {object} obj The prototype of the new element
- * @return {object} The prototype of the new element
+ * Returns whether the element type is one of our known registered ones
+ *
+ * @param   {string} node The name of the tag to register
+ * @returns {boolean} Whether the tag name matches that of our registered
+ *                    custom elements
  */
-module.exports = document.registerElement = function (tagName, obj) {
+module.exports.isNode = function (node) {
+  return node.tagName.toLowerCase() in knownTags || node.isNode;
+};
+
+/**
+ * @param   {string} tagName The name of the tag to register
+ * @param   {object} obj The prototype of the new element
+ * @returns {object} The prototype of the new element
+ */
+module.exports.registerElement = document.registerElement = function (tagName, obj) {
   var proto = Object.getPrototypeOf(obj.prototype);
   var newObj = obj;
+  var isVRNode = VRNode && proto === VRNode.prototype;
+  var isVRObject = VRObject && proto === VRObject.prototype;
+
+  if (isVRNode || isVRObject) { addTagName(tagName); }
 
   // Does the element inherit from VRNode?
-  if (VRNode && proto === VRNode.prototype) {
+  if (isVRNode) {
     newObj = wrapVRNodeMethods(obj.prototype);
     newObj = {prototype: Object.create(proto, newObj)};
   }
 
   // Does the element inherit from VRObject?
-  if (VRObject && proto === VRObject.prototype) {
+  if (isVRObject) {
     newObj = wrapVRObjectMethods(obj.prototype);
     newObj = {prototype: Object.create(proto, newObj)};
   }
@@ -44,14 +65,14 @@ module.exports = document.registerElement = function (tagName, obj) {
 };
 
 /**
- * This wrapps some of the obj methods to call those on VRNode base clase
+ * This wraps some of the obj methods to call those on VRNode base clase
  * @param  {object} obj The objects that contains the methods that will be wrapped
  * @return {object} An object with the same properties as the input parameter but
  * with some of methods wrapped.
  */
 function wrapVRNodeMethods (obj) {
   var newObj = {};
-  wrapMethods(newObj, ['createdCallback'], obj, VRNode.prototype);
+  wrapMethods(newObj, ['attachedCallback', 'attributeChangedCallback'], obj, VRNode.prototype);
   copyProperties(obj, newObj);
   return newObj;
 }
@@ -64,7 +85,7 @@ function wrapVRNodeMethods (obj) {
  */
 function wrapVRObjectMethods (obj) {
   var newObj = {};
-  var vrNodeMethods = ['createdCallback'];
+  var vrNodeMethods = ['attachedCallback', 'attributeChangedCallback'];
   var vrObjectMethods = [
     'attributeChangedCallback',
     'attachedCallback',
@@ -104,6 +125,8 @@ function wrapMethod (obj, methodName, derivedObj, baseObj) {
   var derivedMethod = derivedObj[methodName];
   var baseMethod = baseObj[methodName];
   if (!derivedMethod || !baseMethod) { return; }
+  // The derived class doesn't override the one in the base one
+  if (derivedMethod === baseMethod) { return; }
   // Wrapper
   // The base method is called before the one in the derived class
   var wrapperMethod = function () {
@@ -123,8 +146,10 @@ function wrapMethod (obj, methodName, derivedObj, baseObj) {
 function copyProperties (source, destination) {
   var props = Object.getOwnPropertyNames(source);
   props.forEach(function (prop) {
+    var desc;
     if (!destination[prop]) {
-      destination[prop] = {value: source[prop], writable: window.debug};
+      desc = Object.getOwnPropertyDescriptor(source, prop);
+      destination[prop] = {value: source[prop], writable: desc.writable};
     }
   });
 }

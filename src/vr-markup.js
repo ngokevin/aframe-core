@@ -1,4 +1,6 @@
-require('./vr-register-element');
+require('webvr-polyfill');
+
+var registerElement = require('./vr-register-element');
 
 var VRObject = require('./core/vr-object');
 var VRNode = require('./core/vr-node');
@@ -8,22 +10,15 @@ var VRNode = require('./core/vr-node');
 var THREE = window.THREE = require('../lib/three');
 var VRUtils = require('./vr-utils');
 
-require('./core/vr-camera');
-require('./core/vr-scene');
+require('./core/vr-animation');
 require('./core/vr-assets');
-
-require('./vr-animation');
-require('./vr-behavior');
-require('./vr-controls');
-require('./vr-cursor');
-require('./vr-fog');
-require('./vr-geometry');
-require('./vr-material');
-require('./vr-mesh');
+require('./core/vr-mixin');
+require('./core/vr-scene');
 
 module.exports = {
   THREE: THREE,
-  VRObject: VRObject,
   VRNode: VRNode,
+  VRObject: VRObject,
+  registerElement: registerElement,
   utils: VRUtils
 };

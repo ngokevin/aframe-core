@@ -1,14 +1,16 @@
 /* global Event, HTMLElement */
 
-require('../vr-register-element');
+var re = require('../vr-register-element');
+var registerElement = re.registerElement;
+var isNode = re.isNode;
 
-module.exports = document.registerElement(
+module.exports = registerElement(
   'vr-assets',
   {
     prototype: Object.create(
       HTMLElement.prototype,
       {
-        createdCallback: {
+        attachedCallback: {
           value: function () {
             this.attachEventListeners();
           }
@@ -19,19 +21,21 @@ module.exports = document.registerElement(
             var self = this;
             var assetLoaded = this.assetLoaded.bind(this);
             this.assetsPending = 0;
-            traverseDOM(this);
-            function traverseDOM (node) {
-              var tagName = node.tagName;
-              if (node !== self && tagName && tagName.indexOf('VR-') === 0) {
+            var children = this.querySelectorAll('*');
+            Array.prototype.slice.call(children).forEach(countElement);
+
+            if (!this.assetsPending) {
+              assetLoaded();
+            }
+
+            function countElement (node) {
+              if (!isNode(node)) { return; }
+              if (!node.hasLoaded) {
                 attachEventListener(node);
                 self.assetsPending++;
               }
-              node = node.firstChild;
-              while (node) {
-                traverseDOM(node);
-                node = node.nextSibling;
-              }
             }
+
             function attachEventListener (node) {
               node.addEventListener('loaded', assetLoaded);
             }
@@ -41,7 +45,7 @@ module.exports = document.registerElement(
         assetLoaded: {
           value: function () {
             this.assetsPending--;
-            if (this.assetsPending === 0) {
+            if (this.assetsPending <= 0) {
               this.load();
             }
           }
@@ -49,7 +53,7 @@ module.exports = document.registerElement(
 
         load: {
           value: function () {
-            // To prevent emmitting the loaded event more than once
+            // To prevent emitting the loaded event more than once.
             if (this.hasLoaded) { return; }
             var event = new Event('loaded');
             this.hasLoaded = true;

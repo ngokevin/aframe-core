@@ -1,25 +1,40 @@
 /* global MessageChannel, performance, Promise */
-
-require('../vr-register-element');
-
-var TWEEN = require('tween.js');
+var re = require('../vr-register-element');
+var registerElement = re.registerElement;
+var isNode = re.isNode;
 
 var THREE = require('../../lib/three');
+var RStats = require('../../lib/vendor/rStats');
+var TWEEN = require('tween.js');
 var VRNode = require('./vr-node');
+var utils = require('../vr-utils');
 
-var VRScene = module.exports = document.registerElement(
+var DEFAULT_LIGHT_ATTR = 'data-aframe-default-light';
+
+var VRScene = module.exports = registerElement(
   'vr-scene',
   {
     prototype: Object.create(
       VRNode.prototype, {
-        createdCallback: {
+        attributeChangedCallback: {
+          value: function (attr, oldVal, newVal) {
+            if (oldVal === newVal) { return; }
+            if (attr === 'stats') { this.setupStats(); }
+          }
+        },
+
+        attachedCallback: {
           value: function () {
             this.insideIframe = window.top !== window.self;
             this.insideLoader = false;
+            this.defaultLightsEnabled = true;
             this.vrButton = null;
+            this.setupStats();
+            this.setupScene();
             this.attachEventListeners();
             this.attachFullscreenListeners();
-            this.setupScene();
+            // For Chrome: https://github.com/MozVR/aframe-core/issues/321
+            window.addEventListener('load', this.resizeCanvas.bind(this));
           }
         },
 
@@ -43,45 +58,27 @@ var VRScene = module.exports = document.registerElement(
             var assets = document.querySelector('vr-assets');
             if (assets && !assets.hasLoaded) {
               this.pendingElements++;
-              assets.addEventListener('loaded', elementLoaded);
+              attachEventListener(assets);
             }
-            traverseDOM(this);
-            function traverseDOM (node) {
-              // We have to wait for the element
-              // If the node it's not the scene itself
-              // and it's a VR element
-              // and the node has not loaded yet
-              if (node !== self && self.isVRNode(node) && !node.hasLoaded) {
-                attachEventListener(node);
-                self.pendingElements++;
-              }
-              node = node.firstChild;
-              while (node) {
-                traverseDOM(node);
-                node = node.nextSibling;
-              }
-            }
-            function attachEventListener (node) {
-              node.addEventListener('loaded', elementLoaded);
-            }
-          }
-        },
 
-        isVRNode: {
-          value: function (node) {
-            // To check if a DOM elemnt is a VR element
-            // We should be checking for the prototype like this
-            // if (VRNode.prototype.isPrototypeOf(node))
-            // Safari and Chrome doesn't seem to have the proper
-            // prototype attached to the node before the createdCallback
-            // function is called. To determine that an element is a VR
-            // related node we check if the tag name starts with VR-
-            // This is fragile. We have to understand why the behaviour between
-            // firefox and the other browsers
-            // is not consistent. Firefox is the only one that behaves as one
-            // expects: The nodes have the proper prototype attached to them at
-            // any time during their lifecycle.
-            return node.tagName && node.tagName.indexOf('VR-') === 0;
+            var children = this.querySelectorAll('*');
+            Array.prototype.slice.call(children).forEach(countElement);
+
+            function countElement (node) {
+              if (!isNode(node)) { return; }
+              self.pendingElements++;
+              if (!node.hasLoaded) {
+                attachEventListener(node);
+              } else {
+                elementLoaded(node);
+              }
+            }
+
+            function attachEventListener (node) {
+              node.addEventListener('loaded', function () {
+                elementLoaded(node);
+              });
+            }
           }
         },
 
@@ -114,15 +111,26 @@ var VRScene = module.exports = document.registerElement(
         attachFullscreenListeners: {
           value: function () {
             // handle fullscreen changes
-            document.addEventListener('mozfullscreenchange', this.fullscreenChange.bind(this));
-            document.addEventListener('webkitfullscreenchange', this.fullscreenChange.bind(this));
+            document.addEventListener('mozfullscreenchange',
+                                      this.fullscreenChange.bind(this));
+            document.addEventListener('webkitfullscreenchange',
+                                      this.fullscreenChange.bind(this));
           }
         },
 
         fullscreenChange: {
           value: function (e) {
-            // switch back to the mono renderer if we have dropped out of fullscreen VR mode.
-            var fsElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+            // Switch back to the mono renderer if we have dropped out of
+            // fullscreen VR mode.
+            var fsElement = document.fullscreenElement ||
+                            document.mozFullScreenElement ||
+                            document.webkitFullscreenElement;
+
+            // lock to landsape orientation on mobile.
+            if (fsElement && utils.isMobile()) {
+              window.screen.orientation.lock('landscape');
+            }
+
             if (!fsElement) {
               this.renderer = this.monoRenderer;
             }
@@ -132,13 +140,19 @@ var VRScene = module.exports = document.registerElement(
         elementLoaded: {
           value: function () {
             this.pendingElements--;
-            // If we still need to wait for more elements
+            // If we still need to wait for more elements.
             if (this.pendingElements > 0) { return; }
-            // If the render loop is already running
+            // If the render loop is already running.
             if (this.renderLoopStarted) { return; }
             this.setupLoader();
+            if (!this.cameraEl) {
+              // If there's no user defined camera we
+              // introduce a default one
+              this.setupCamera();
+              return;
+            }
             this.resizeCanvas();
-            // It kicks off the render loop
+            // Kick off the render loop.
             this.render(performance.now());
             this.renderLoopStarted = true;
             this.load();
@@ -213,20 +227,42 @@ var VRScene = module.exports = document.registerElement(
           }
         },
 
+        setupStats: {
+          value: function () {
+            var statsEnabled = this.getAttribute('stats') === 'true';
+            var statsEl = document.querySelector('.rs-base');
+            if (!statsEnabled) {
+              if (statsEl) { statsEl.classList.add('hidden'); }
+              return;
+            }
+            if (statsEl) { statsEl.classList.remove('hidden'); }
+            if (this.stats) { return; }
+            this.stats = new RStats({
+              CSSPath: '../../style/',
+              values: {
+                fps: { caption: 'Framerate (FPS)', below: 30 }
+              },
+              groups: [
+                { caption: 'Framerate', values: [ 'fps' ] }
+              ]
+            });
+          }
+        },
+
         setupScene: {
           value: function () {
-            this.behaviors = this.querySelectorAll('vr-controls');
-            // querySelectorAll returns a NodeList that it's not a normal array
-            // We need to convert
-            this.behaviors = Array.prototype.slice.call(this.behaviors);
+            // Three.js setup
+            // We reuse the scene if there's already one
+            var scene = this.object3D = (VRScene && VRScene.scene) || new THREE.Scene();
+            VRScene.scene = scene;
+            this.behaviors = [];
             // The canvas where the WebGL context will be painted
             this.setupCanvas();
             // The three.js renderer setup
             this.setupRenderer();
-            // three.js camera setup
-            this.setupCamera();
             // cursor camera setup
             this.setupCursor();
+            this.setupDefaultLights();
           }
         },
 
@@ -241,20 +277,17 @@ var VRScene = module.exports = document.registerElement(
 
         setupCamera: {
           value: function () {
-            var self = this;
-            var cameraEl = this.querySelector('vr-camera');
-            // If there's not a user-defined camera, we create one.
-            if (!cameraEl) {
-              cameraEl = document.createElement('vr-camera');
-              cameraEl.setAttribute('fov', 45);
-              cameraEl.setAttribute('near', 1);
-              cameraEl.setAttribute('far', 10000);
-              self.appendChild(cameraEl);
-            }
-
-            cameraEl.addEventListener('loaded', function () {
-              self.camera = cameraEl.object3D;
-            });
+            var defaultCamera;
+            // If there's a user defined camera
+            if (this.cameraEl) { return; }
+            // We create a default camera
+            defaultCamera = document.createElement('vr-object');
+            defaultCamera.setAttribute('camera', {fov: 45});
+            defaultCamera.setAttribute('position', {x: 0, y: 0, z: 20});
+            this.pendingElements++;
+            defaultCamera.addEventListener('loaded',
+                                           this.elementLoaded.bind(this));
+            this.appendChild(defaultCamera);
           }
         },
 
@@ -267,10 +300,74 @@ var VRScene = module.exports = document.registerElement(
           }
         },
 
+        /**
+         * Prescibe default lights to the scene.
+         * Does so by injecting markup such that this state is not invisible.
+         * These lights are removed if the user adds any lights.
+         */
+        setupDefaultLights: {
+          value: function () {
+            var ambientLight = document.createElement('vr-object');
+            ambientLight.setAttribute('light',
+                                      {color: '#bebebe', type: 'ambient'});
+            ambientLight.setAttribute(DEFAULT_LIGHT_ATTR, '');
+            this.appendChild(ambientLight);
+
+            var directionalLight = document.createElement('vr-object');
+            directionalLight.setAttribute('light', {intensity: 2.5});
+            directionalLight.setAttribute('position', {x: -10, y: 20, z: 10});
+            directionalLight.setAttribute(DEFAULT_LIGHT_ATTR, '');
+            this.appendChild(directionalLight);
+          }
+        },
+
+        /**
+         * Notify scene that light has been added and to remove the default
+         *
+         * @param {object} el - element holding the light component.
+         */
+        registerLight: {
+          value: function (el) {
+            if (this.defaultLightsEnabled &&
+                !el.hasAttribute(DEFAULT_LIGHT_ATTR)) {
+              // User added a light, remove default lights through DOM.
+              var defaultLights = document.querySelectorAll(
+                '[' + DEFAULT_LIGHT_ATTR + ']');
+              for (var i = 0; i < defaultLights.length; i++) {
+                this.removeChild(defaultLights[i]);
+              }
+              this.defaultLightsEnabled = false;
+            }
+          }
+        },
+
         enterVR: {
           value: function () {
             this.renderer = this.stereoRenderer;
-            this.stereoRenderer.setFullScreen(true);
+            this.setFullscreen();
+          }
+        },
+
+        setFullscreen: {
+          value: function () {
+            var canvas = this.canvas;
+
+            // Use the fullscreen method on effect when on desktop.
+            if (!utils.isMobile()) {
+              this.stereoRenderer.setFullScreen(true);
+              return;
+            }
+
+            // For non-VR enabled mobile devices, the controls are polyfilled, but not the
+            // vrDisplay, so the fullscreen method on the effect renderer does not work and
+            // we request it here manually instead.
+            if (canvas.requestFullscreen) {
+              canvas.requestFullscreen();
+            } else if (canvas.mozRequestFullScreen) {
+              canvas.mozRequestFullScreen();
+            } else if (canvas.webkitRequestFullscreen) {
+              canvas.webkitRequestFullscreen();
+            }
           }
         },
 
@@ -278,23 +375,21 @@ var VRScene = module.exports = document.registerElement(
           value: function () {
             var canvas = this.canvas;
             var renderer = this.renderer = this.monoRenderer =
-              (VRScene && VRScene.renderer) || // To prevent creating multiple rendering contexts
-              new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
+              (VRScene && VRScene.renderer) ||
+              // To prevent creating multiple rendering contexts.
+              new THREE.WebGLRenderer({canvas: canvas, antialias: true,
+                                       alpha: true});
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.sortObjects = false;
             VRScene.renderer = renderer;
-
             this.stereoRenderer = new THREE.VREffect(renderer);
-
-            this.object3D = (VRScene && VRScene.scene) || new THREE.Scene();
-            VRScene.scene = this.object3D;
           }
         },
 
         resizeCanvas: {
           value: function () {
             var canvas = this.canvas;
-            var camera = this.camera;
+            var camera = this.cameraEl.components.camera.camera;
             // Make it visually fill the positioned parent
             canvas.style.width = '100%';
             canvas.style.height = '100%';
@@ -331,13 +426,21 @@ var VRScene = module.exports = document.registerElement(
 
         render: {
           value: function (t) {
+            var stats = this.stats;
+            if (stats) {
+              stats('rAF').tick();
+              stats('FPS').frame();
+            }
+            var camera = this.cameraEl.components.camera.camera;
             TWEEN.update(t);
             // Updates behaviors
             this.behaviors.forEach(function (behavior) {
               behavior.update(t);
             });
-            this.renderer.render(this.object3D, this.camera);
-            this.animationFrameID = window.requestAnimationFrame(this.render.bind(this));
+            this.renderer.render(this.object3D, camera);
+            if (stats) { stats().update(); }
+            this.animationFrameID = window.requestAnimationFrame(
+              this.render.bind(this));
           }
         }
       }
