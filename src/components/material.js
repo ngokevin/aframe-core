@@ -6,20 +6,28 @@ var utils = require('../vr-utils');
 /**
  * Material component.
  *
- * @params {string} color
- * @params {number} metalness
+ * @params {string} color - base color of the PBR material
+ * @params {number} height - the height of the texture image
+ * @params {number} metalness - PBR parameter
  * @params {number} opacity - [0-1].
- * @params {number} roughness
+ * @params {boolean} receiveLight - Determines if the material is shaded
+ * @params {number} roughness - PBR parameter
+ * @params {string} src - The src to be used as a texture - url() or CSS Selector
+ * @params {boolean} transparent - If the alpha channel of a texture image is rendered transparent
+ * @params {number} width - the width of the texture image
  * @namespace material
  */
 module.exports.Component = registerComponent('material', {
   defaults: {
     value: {
-      color: 'red',
+      color: '#FFF',
       height: 360,
       metalness: 0.0,
       opacity: 1.0,
+      receiveLight: true,
       roughness: 0.5,
+      src: '',
+      transparent: false,
       width: 640
     }
   },
@@ -29,13 +37,13 @@ module.exports.Component = registerComponent('material', {
    */
   init: {
     value: function () {
+      this.textureSrc = null;
       this.el.object3D.material = this.getMaterial();
     }
   },
 
   /**
    * Update material.
-   * Support switching between basic/texture and physical material.
    */
   update: {
     value: function () {
@@ -44,105 +52,93 @@ module.exports.Component = registerComponent('material', {
   },
 
   /**
-   * Creates a new material, type depending on the component attributes.
+   * Get or create material.
+   * Returned material type depends on receiveLight.
+   *   receiveLight: false - MeshBasicMaterial
+   *   receiveLight: true - MeshPhysicalMaterial
    *
    * @return {object} material
    */
   getMaterial: {
     value: function () {
-      var src = this.data.src;
-      if (src) {
-        return this.setupTextureMaterial(src);
-      } else {
-        return this.setupPhysicalMaterial();
-      }
-    }
-  },
+      var data = this.data;
+      var material;
 
-  /**
-   * Setups a material and loads the video or an image to be used as
-   * as a texture
-   *
-   * @params {string} src where the texture is located
-   */
-  setupTextureMaterial: {
-    value: function (src) {
-      var material = this.setupBasicMaterial();
-      // loads image or video
-      loadSrc(src, this.loadImage.bind(this),
-                   this.loadVideo.bind(this));
+      if (data.receiveLight) {
+        // Physical material.
+        material = this.updateOrCreateMaterial({
+          color: new THREE.Color(data.color),
+          side: this.getSides(),
+          opacity: data.opacity,
+          transparent: data.opacity < 1,
+          metalness: data.metalness,
+          roughness: data.roughness
+        }, 'MeshPhysicalMaterial');
+      } else {
+        material = this.updateOrCreateMaterial({
+          // Basic material.
+          color: new THREE.Color(data.color),
+          side: this.getSides(),
+          opacity: data.opacity,
+          transparent: data.transparent
+        }, 'MeshBasicMaterial');
+      }
+
+      // Textures.
+      var src = data.src;
+      if (src) {
+        if (src !== this.textureSrc) {
+          // Texture added or changed.
+          this.textureSrc = src;
+          loadSrc(src, this.loadImage.bind(this), this.loadVideo.bind(this));
+        }
+      } else {
+        // Texture removed.
+        material.map = null;
+        material.needsUpdate = true;
+      }
       return material;
     }
   },
 
   /**
-   * Generic function to create materials.
-   * It tries to reuse the cached material if posible
+   * Updates this.material using data, creates new material if this.material
+   * doesn't yet exist.
    *
-   * @params {string} data attributes of the material
-   * @params {string} type type of the material to be created
-   *
-   * @returns {object} material - three.js based on the passed type.
+   * @params {object} data - attributes to set on the material.
+   * @params {string} type - type of material to create (if necessary).
+   * @returns {object} material - three.js material based on `type`.
    */
-  setupMaterial: {
+  updateOrCreateMaterial: {
     value: function (data, type) {
       var material = this.material;
       var reuseMaterial = material && material.type === type;
-      material = reuseMaterial ? material : new THREE[type](data);
-      Object.keys(data).forEach(function (key) {
-        material[key] = data[key];
-      });
+      if (reuseMaterial) {
+        Object.keys(data).forEach(function (key) {
+          material[key] = data[key];
+        });
+      } else {
+        material = new THREE[type](data);
+      }
       this.material = material;
       return material;
     }
   },
 
   /**
-   * Creates a new material object for handling textures.
+   * Returns an integer for which new material face sides will be rendered.
    *
-   * @returns {object} material - three.js MeshBasicMaterial.
+   * @returns {Integer} `THREE.DoubleSide` (`0`) or `THREE.FrontSide` (`2`)
    */
-  setupBasicMaterial: {
+  getSides: {
     value: function () {
-      var data = this.data;
-      return this.setupMaterial({
-        color: new THREE.Color(0xffffff),
-        side: THREE.DoubleSide,
-        opacity: data.opacity,
-        transparent: data.opacity < 1
-      }, 'MeshBasicMaterial');
-    }
-  },
-
-  /**
-   * Creates a physical material.
-   *
-   * @returns {object} material - three.js MeshPhysicalMaterial.
-   */
-  setupPhysicalMaterial: {
-    value: function () {
-      var data = this.data;
-      return this.setupMaterial({
-        color: new THREE.Color(data.color),
-        opacity: data.opacity,
-        transparent: data.opacity < 1,
-        metalness: data.metalness,
-        roughness: data.roughness
-      }, 'MeshPhysicalMaterial');
-    }
-  },
-
-  /**
-   * Updates an existing physical material.
-   */
-  updatePhysicalMaterial: {
-    value: function () {
-      var data = this.data;
-      var material = this.el.object3D.material;
-      data.color = new THREE.Color(data.color);
-      Object.keys(data).forEach(function (key) {
-        material[key] = data[key];
-      });
+      var geometry = this.el.components.geometry;
+      if (geometry && geometry.data.openEnded) {
+        // For performance reasons, we special case open-ended cylinders
+        // for rendering both faces.
+        return THREE.DoubleSide;
+      }
+      return THREE.FrontSide;
     }
   },
 
@@ -179,8 +175,7 @@ module.exports.Component = registerComponent('material', {
       }
       el.width = this.data.width;
       el.height = this.data.height;
-      // If it's a brand new video element we need to attach
-      // event listeners.
+      // Attach event listeners if brand new video element.
       if (el !== this.videoEl) {
         el.autoplay = true;
         el.loop = true;
