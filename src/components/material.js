@@ -3,13 +3,12 @@ var debug = require('../utils/debug');
 var registerComponent = require('../core/register-component').registerComponent;
 var srcLoader = require('../utils/src-loader');
 var THREE = require('../../lib/three');
-var utils = require('../vr-utils.js');
-
-var warn = debug('components:material:warn');
 
 var CubeLoader = new THREE.CubeTextureLoader();
+var error = debug('components:material:error');
 var TextureLoader = new THREE.TextureLoader();
 var texturePromises = {};
+var warn = debug('components:material:warn');
 
 /**
  * Material component.
@@ -189,6 +188,7 @@ module.exports.Component = registerComponent('material', {
         texturePromises[envMap] = new Promise(function (resolve) {
           srcLoader.validateCubemapSrc(envMap, function loadEnvMap (urls) {
             CubeLoader.load(urls, function (cube) {
+              console.error('cube', cube);
               // Texture loaded.
               self.isLoadingEnvMap = false;
               material.envMap = cube;
@@ -214,8 +214,8 @@ function loadImageTexture (material, src, repeat) {
   var onLoad = createTexture;
   var onProgress = function () {};
   var onError = function (xhr) {
-    utils.error('The URL "$s" could not be fetched (Error code: %s; Response: %s)',
-                xhr.status, xhr.statusText);
+    error('The URL "$s" could not be fetched (Error code: %s; Response: %s)',
+          xhr.status, xhr.statusText);
   };
 
   if (isEl) {
@@ -253,7 +253,7 @@ function loadImageTexture (material, src, repeat) {
 function createVideoEl (material, src, width, height) {
   var el = material.videoEl || document.createElement('video');
   function onError () {
-    warn('The url "$s" is not a valid image or video', src);
+    warn('The URL "$s" is not a valid image or video', src);
   }
   el.width = width;
   el.height = height;
