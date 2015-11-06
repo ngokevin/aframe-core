@@ -33,6 +33,7 @@ require('./core/a-assets');
 require('./core/a-cubemap');
 require('./core/a-mixin');
 require('./core/a-scene');
+require('./core/a-shader');
 
 module.exports = {
   AEntity: AEntity,
