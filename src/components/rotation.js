@@ -14,14 +14,11 @@ var proto = {
 
   update: {
     value: function () {
-      var data = this.data;
-      var object3D = this.el.object3D;
-      // Updates three.js object
-      var rotationX = THREE.Math.degToRad(data.x);
-      var rotationY = THREE.Math.degToRad(data.y);
-      var rotationZ = THREE.Math.degToRad(data.z);
-      // Updates three.js object
-      object3D.rotation.set(rotationX, rotationY, rotationZ);
+      // Update three.js object.
+      this.el.object3D.rotation.set(THREE.Math.degToRad(this.data.x),
+                                    THREE.Math.degToRad(this.data.y),
+                                    THREE.Math.degToRad(this.data.z));
+      this.el.object3D.rotation.order = 'YXZ';
     }
   }
 };

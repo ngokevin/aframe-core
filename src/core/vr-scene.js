@@ -400,7 +400,8 @@ var VRScene = module.exports = registerElement(
             renderer.sortObjects = false;
             VRScene.renderer = renderer;
             this.stereoRenderer = new THREE.VREffect(renderer);
-          }
+          },
+          writable: window.debug
         },
 
         resizeCanvas: {
