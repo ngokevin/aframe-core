@@ -129,6 +129,8 @@ module.exports.Component = registerComponent('controls', {
 
       if (!mouseDown || !mouseLook) { return; }
 
+      if (this.el.sceneEl) { this.el.sceneEl.moved = true; }
+
       var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
       var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 

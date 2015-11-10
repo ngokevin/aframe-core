@@ -72,6 +72,7 @@ module.exports.Component = registerComponent('cursor', {
       var data = this.data;
       var el = evt.detail.el;
       var distance = evt.detail.distance;
+      if (el.sceneEl && !el.sceneEl.moved) { return; }
       if (this.intersectedEl === el) { return; }
       if (distance >= this.data.maxDistance) { return; }
       this.intersectedEl = el;
