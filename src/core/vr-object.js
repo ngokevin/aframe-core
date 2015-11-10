@@ -229,7 +229,6 @@ var proto = {
       if (!this.isComponentDefined(name) && !isDependency) { return; }
       this.initComponentDependencies(name);
       this.components[name] = new VRComponents[name].Component(this);
-      VRUtils.log('Component initialized: %s', name);
     }
   },
 
