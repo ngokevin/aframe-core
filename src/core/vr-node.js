@@ -1,15 +1,12 @@
 /* global Event, HTMLElement, MutationObserver */
 var registerElement = require('../vr-register-element').registerElement;
 
-var VRUtils = require('../vr-utils');
-
 /**
  *
- * VRNode is the base class for all the VR markup
+ * VRNode is the base class for all the VR markup.
  * It manages loading of objects.
  *
  */
-
 module.exports = registerElement(
   'vr-node',
   {
@@ -165,45 +162,6 @@ module.exports = registerElement(
 
         applyMixin: {
           value: function () { /* no-op */ },
-          writable: window.debug
-        },
-
-        /**
-         * Emits a DOM event.
-         *
-         * @param {String} name
-         *   Name of event (use a space-delimited string for multiple events).
-         * @param {Object=} [detail={}]
-         *   Custom data to pass as `detail` to the event.
-         */
-        emit: {
-          value: function (name, detail) {
-            var self = this;
-            detail = detail || {};
-            var data = {bubbles: true, detail: detail};
-            return name.split(' ').map(function (eventName) {
-              return VRUtils.fireEvent(self, eventName, data);
-            });
-          },
-          writable: window.debug
-        },
-
-        /**
-         * Returns a closure that emits a DOM event.
-         *
-         * @param {String} name
-         *   Name of event (use a space-delimited string for multiple events).
-         * @param {Object} detail
-         *   Custom data (optional) to pass as `detail` if the event is to
-         *   be a `CustomEvent`.
-         */
-        emitter: {
-          value: function (name, detail) {
-            var self = this;
-            return function () {
-              self.emit(name, detail);
-            };
-          },
           writable: window.debug
         }
       })
