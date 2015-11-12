@@ -6,46 +6,50 @@ var VRUtils = require('../vr-utils');
  * Geometry component. Combined with material component to make mesh in
  * 3D object.
  *
- * @param {number} depth
- * @param {number} height
- * @param {number} innerRadius
- * @param {bool} openEnded
- * @param {number} outerRadius
- * @param {number} [p=2] - coprime of q that helps define torus knot.
- * @param {number} [q=3] - coprime of p that helps define torus knot.
- * @param {number} [primitive=null] - type of shape (e.g., box, sphere).
- * @param {number} radius
- * @param {number} segments
- * @param {number} segmentsHeight
- * @param {number} segmentsRadius
- * @param {number} segmentsWidth
- * @param {number} thetaLength
- * @param {number} thetaSTart
- * @param {number} tube
- * @param {number} tubularSegments
- * @param {number} width
+ * @param {number}  [depth=5]
+ * @param {number}  [height=5]
+ * @param {boolean} [open-ended=false]
+ * @param {number}  [p=2] - coprime of q that helps define torus knot.
+ * @param {number}  [primitive=null] - type of shape (e.g., box, sphere).
+ * @param {number}  [q=3] - coprime of p that helps define torus knot.
+ * @param {number}  [radius=5]
+ * @param {number}  [radius-inner=5]
+ * @param {number}  [radius-outer=7]
+ * @param {number}  [segments=32]
+ * @param {number}  [segments-height=18]
+ * @param {number}  [segments-phi=8]
+ * @param {number}  [segments-radius=36]
+ * @param {number}  [segments-theta=8]
+ * @param {number}  [segments-tubular=8]
+ * @param {number}  [segments-width=36]
+ * @param {number}  [theta-length=6.3]
+ * @param {number}  [theta-start=0]
+ * @param {number}  [tube=2]
+ * @param {number}  [width=5]
  */
 module.exports.Component = registerComponent('geometry', {
   defaults: {
     value: {
-      depth: 5,
-      height: 5,
-      innerRadius: 5,
-      openEnded: false,
-      outerRadius: 7,
-      p: 2,
-      primitive: null,
-      q: 3,
-      radius: 5,
-      segments: 32,
-      segmentsHeight: 18,
-      segmentsRadius: 36,
-      segmentsWidth: 36,
-      thetaLength: 6.3,
-      thetaStart: 0,
-      tube: 2,
-      tubularSegments: 8,
-      width: 5
+      'depth': 5,
+      'height': 5,
+      'open-ended': false,
+      'p': 2,
+      'primitive': null,
+      'q': 3,
+      'radius': 5,
+      'radius-inner': 5,
+      'radius-outer': 7,
+      'segments': 32,
+      'segments-height': 18,
+      'segments-phi': 8,
+      'segments-radius': 36,
+      'segments-theta': 8,
+      'segments-tubular': 8,
+      'segments-width': 36,
+      'theta-length': 6.3,
+      'theta-start': 0,
+      'tube': 2,
+      'width': 5
     }
   },
 
@@ -58,42 +62,73 @@ module.exports.Component = registerComponent('geometry', {
   getGeometry: {
     value: function () {
       var data = this.data;
-      switch (data.primitive) {
+      var primitive = (data.primitive || '').toLowerCase();
+
+      var depth = data.depth;
+      var height = data.height;
+      var openEnded = data['open-ended'];
+      var radius = data.radius;
+      var radiusInner = data['radius-inner'];
+      var radiusOuter = data['radius-outer'];
+      var segments = data.segments;
+      var segmentsHeight = data['segments-height'];
+      var segmentsPhi = data['segments-phi'];
+      var segmentsRadius = data['segments-radius'];
+      var segmentsTheta = data['segments-theta'];
+      var segmentsTubular = data['segments-tubular'];
+      var segmentsWidth = data['segments-width'];
+      var thetaLength = data['theta-length'];
+      var thetaStart = data['theta-start'];
+      var tube = data.tube;
+      var width = data.width;
+
+      var radiusBottom = radius;
+      if ('radius-bottom' in data) {
+        radiusBottom = parseFloat(data['radius-bottom']);
+      }
+
+      var radiusTop = radius;
+      if ('radius-top' in data) {
+        radiusTop = parseFloat(data['radius-top']);
+      }
+
+      switch (primitive) {
         case 'box': {
-          return new THREE.BoxGeometry(data.width, data.height, data.depth);
+          return new THREE.BoxGeometry(width, height, depth);
         }
         case 'circle': {
           return new THREE.CircleGeometry(
-            data.radius, data.segments, data.thetaStart, data.thetaLength);
+            radius, segments, thetaStart, thetaLength);
         }
         case 'cylinder': {
           return new THREE.CylinderGeometry(
-            data.radius, data.radius, data.height, data.segmentsRadius,
-            data.segmentsHeight, data.openEnded, data.thetaStart,
-            data.thetaLength);
+            radiusTop, radiusBottom, height, segmentsRadius,
+            segmentsHeight, openEnded, thetaStart,
+            thetaLength);
         }
         case 'plane': {
-          return new THREE.PlaneBufferGeometry(data.width, data.height);
+          return new THREE.PlaneBufferGeometry(width, height);
         }
         case 'ring': {
           return new THREE.RingGeometry(
-            data.innerRadius, data.outerRadius, data.segments);
+            radiusInner, radiusOuter, segmentsTheta,
+            segmentsPhi, thetaStart, thetaLength);
         }
         case 'sphere': {
           return new THREE.SphereGeometry(
-            data.radius, data.segmentsWidth, data.segmentsHeight);
+            radius, segmentsWidth, segmentsHeight);
         }
         case 'torus': {
           return new THREE.TorusGeometry(
-            data.radius, data.tube, data.segments, data.segments);
+            radius, tube, segments, segments);
         }
-        case 'torusKnot': {
+        case 'torusknot': {
           return new THREE.TorusKnotGeometry(
-            data.radius, data.tube, data.segments, data.tubularSegments,
+            radius, tube, segments, segmentsTubular,
             data.p, data.q);
         }
         default: {
-          VRUtils.warn('Primitive type not supported: ' + data.primitive);
+          VRUtils.warn('Primitive type not supported: %s', primitive);
           return new THREE.Geometry();
         }
       }
