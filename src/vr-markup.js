@@ -1,5 +1,3 @@
-require('webvr-polyfill');
-
 var registerElement = require('./vr-register-element');
 
 var VRObject = require('./core/vr-object');
@@ -10,6 +8,14 @@ var VRNode = require('./core/vr-node');
 var THREE = window.THREE = require('../lib/three');
 var VRUtils = require('./vr-utils');
 
+// Webvr polyfill configuration
+window.WebVRConfig = {
+  TOUCH_PANNER_DISABLED: true,
+  MOUSE_KEYBOARD_CONTROLS_DISABLED: true
+};
+require('webvr-polyfill');
+
+require('./core/cubemap');
 require('./core/vr-animation');
 require('./core/vr-assets');
 require('./core/vr-mixin');

@@ -1,57 +1,109 @@
 <!DOCTYPE html>
+<html lang="en">
 <html>
   <head>
+    <title>A-Frame Core Examples</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
-    <title>vr-markup examples</title>
-    <style>
-      * {
+    <link rel="stylesheet" href="//code.cdn.mozilla.net/fonts/fira.css">
+    <style type="text/css">
+      body {
+        background: rgb(239,45,94);
+        font: normal 500 1.2em/1em 'Fira Mono', sans-serif;
+        color: white;
+        padding: 2rem;
+      }
+
+      ul, li {
+        list-style: none;
         margin: 0;
         padding: 0;
+        line-height: 2.2rem;
       }
-      html {
-        font-size: 11px;
+
+      .note, .note a {
+        color: rgba(255,255,255,0.4);
+        font-family: 'Fira Mono', sans-serif;
       }
-      body {
-        background: rgb(53,196,232);
-        color: #fff;
-        font: 2rem/1.5 'Montserrat', sans-serif;
-        margin: 0;
-        padding: 3rem;
+
+      .note a:hover {
+        color: white;
       }
+
+      .view-source {
+        margin-left: 15px;
+        border: none;
+        font-size: 0.8em;
+      }
+
       h1 {
-        margin: 0 0 3rem;
+        font-size: 3rem;
+        font-family: 'Fira Sans', sans-serif;
+        font-weight: 200;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        line-height: 3rem;
+        margin: 0;
       }
-      ul {
-        line-height: 1.5;
-        list-style: none;
-      }
+
       a {
-        color: #036;
-        display: block;
-        padding: .5rem 0;
+        color: white;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(255,255,255,0.6);
       }
-      a:hover {
-        color: #369;
+
+      .links {
+        padding-top: 20px;
+        border-top: 1px dashed rgba(255,255,255,0.4);
+        border-bottom: 1px dashed rgba(255,255,255,0.4);
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+      }
+
+      .links a {
+        font-family: 'Fira Sans';
+        font-weight: 300;
+        letter-spacing: 0.01em;
+      }
+
+      li a:hover {
+        background-color: rgba(0,0,0,0.1);
+        border-bottom: 1px solid #E92958;
+      }
+
+      #logo-moz {
+        float: right;
+        margin-right: 5px;
+        width: 6rem;
       }
     </style>
   </head>
   <body>
-    <h1>vr-markup examples</h1>
-    <ul>
-      <li><a href="animation/">Animation</a></li>
-      <li><a href="controls/">Controls</a></li>
-      <li><a href="cursor/">Cursor</a></li>
-      <li><a href="cubes/">Cubes</a></li>
-      <li><a href="cylinders/">Cylinders</a></li>
-      <li><a href="lights/">Lights</a></li>
-      <li><a href="mixin/">Mixin</a></li>
-      <li><a href="opacity/">Opacity</a></li>
-      <li><a href="model/">Model</a></li>
-      <li><a href="texture/">Texture</a></li>
-      <li><a href="panoexplorer/">Pano Explorer</a></li>
-      <li><a href="video/">Video</a></li>
+    <h1>A-Frame Core Examples</h1>
+    <p class="note">
+      <a href="https://aframe.io">aframe.io</a>
+    </p>
+
+    <ul class="links">
+      <li><a href="animation/">Animation</a><a class="note view-source" href="view-source:animation/">view source</a></li>
+      <li><a href="controls/">Controls</a><a class="note view-source" href="view-source:controls/">view source</a></li>
+      <li><a href="cursor/">Cursor</a><a class="note view-source" href="view-source:cursor/">view source</a></li>
+      <li><a href="cylinders/">Cylinders</a><a class="note view-source" href="view-source:cylinders/">view source</a></li>
+      <li><a href="cube/">Cube</a><a class="note view-source" href="view-source:cube/">view source</a></li>
+      <li><a href="geometries/">Geometries</a><a class="note view-source" href="view-source:geometries/">view source</a></li>
+      <li><a href="lights/">Lights</a><a class="note view-source" href="view-source:lights/">view source</a></li>
+      <li><a href="mixin/">Mixin</a><a class="note view-source" href="view-source:mixin/">view source</a></li>
+      <li><a href="model/">Model</a><a class="note view-source" href="view-source:model/">view source</a></li>
+      <li><a href="opacity/">Opacity</a><a class="note view-source" href="view-source:opacity/">view source</a></li>
+      <li><a href="physical/">Physically-Based Materials</a><a class="note view-source" href="view-source:physical/">view source</a></li>
+      <li><a href="panoexplorer/">Pano Explorer</a><a class="note view-source" href="view-source:panoexplorer/">view source</a></li>
+      <li><a href="texture/">Texture</a><a class="note view-source" href="view-source:texture/">view source</a></li>
+      <li><a href="video/">Video</a><a class="note view-source" href="view-source:video/">view source</a></li>
+      <li><a href="visibility/">Visibility</a><a class="note view-source" href="view-source:visibility/">view source</a></li>
     </ul>
+
+    <footer>
+      <img src="_images/logo-mozilla-white.svg" id="logo-moz" alt="Mozilla">
+    </footer>
   </body>
 </html>
