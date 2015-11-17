@@ -301,6 +301,37 @@ var proto = {
   },
 
   /**
+   * Sets a component's attribute to a value.
+   * Does not do anything if value is the same as the current value.
+   * Done through the DOM to make sure all the appropriate attributeChangedCbs
+   * are called and things work as expected.
+   *
+   * @param {string} componentName
+   * @param {string} componentAttributeName
+   * @param value
+   */
+  setComponentAttribute: {
+    value: function (componentName, componentAttributeName, value) {
+      var component = this.components[componentName];
+      var currentVal;
+      var data;
+      if (!component) { return; }
+
+      data = component.getData();
+      currentVal = data[componentAttributeName];
+      if (currentVal === value) { return; }
+      if (currentVal.constructor !== value.constructor) {
+        VRUtils.warn(
+          'Calling setComponentAttribute using a value with an unexpected ' +
+          'type based on the component definition');
+      }
+
+      data[componentAttributeName] = value;
+      this.setAttribute(componentName, component.stringifyAttributes(data));
+    }
+  },
+
+  /**
    * If attribute is a component, it parses the style-like string into an
    * object. Returned component data does not include applied mixins or
    * defaults.
@@ -325,12 +356,9 @@ var proto = {
    * @returns Attribute value if it exists, else defaultValue, else null.
    */
   getComponentAttribute: {
-    value: function (componentName, attributeName, defaultValue) {
+    value: function (componentName, attributeName) {
       var componentData = this.getComponentData(componentName);
-      if (componentData) {
-        return componentData[attributeName] || defaultValue;
-      }
-      return defaultValue || null;
+      return componentData ? componentData[attributeName] : null;
     }
   },
 
@@ -343,8 +371,11 @@ var proto = {
    */
   getComponentData: {
     value: function (componentName) {
-      var component = this.components[componentName];
-      if (component) { return component.getData(); }
+      var component;
+      if (!componentName) { return null; }
+      component = this.components[componentName];
+      if (!component) { return; }
+      return component.getData();
     }
   },
 

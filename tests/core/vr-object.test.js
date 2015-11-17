@@ -219,4 +219,44 @@ suite('vr-object', function () {
       assert.ok(el.outerHTML.indexOf('position="10 20 30"') !== -1);
     });
   });
+
+  suite('setComponentAttribute', function () {
+    test('sets component attribute that is implicitly set', function (done) {
+      var el = entityFactory();
+      el.setAttribute('light', 'type: ambient');
+      el.addEventListener('loaded', function () {
+        el.setComponentAttribute('light', 'color', '#F0F');
+        process.nextTick(function () {
+          assert.equal(el.getComponentData('light').type, 'ambient');
+          assert.equal(el.getComponentData('light').color, '#F0F');
+          done();
+        });
+      });
+    });
+
+    test('sets component attribute that is explicitly set', function (done) {
+      var el = entityFactory();
+      el.setAttribute('light', 'type: ambient; color: #FFF');
+      el.addEventListener('loaded', function () {
+        el.setComponentAttribute('light', 'color', '#F0F');
+        process.nextTick(function () {
+          assert.equal(el.getComponentData('light').type, 'ambient');
+          assert.equal(el.getComponentData('light').color, '#F0F');
+          done();
+        });
+      });
+    });
+
+    test('does not do anything if value does not change', function (done) {
+      var el = entityFactory();
+      el.setAttribute('light', 'type: ambient');
+      el.addEventListener('loaded', function () {
+        el.setComponentAttribute('light', 'type', 'ambient');
+        process.nextTick(function () {
+          assert.equal(el.getComponentData('light').type, 'ambient');
+          done();
+        });
+      });
+    });
+  });
 });

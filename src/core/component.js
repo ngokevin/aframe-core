@@ -115,8 +115,9 @@ Component.prototype = {
   },
 
   /**
-   * Calls style parser on a component string.
-   * camelCases keys for error-tolerance (`max-value` ~= `maxValue`).
+   * Deserializes component data from string to object.
+   * Also camelCases keys for error-tolerance (`max-value` ~= `maxValue`).
+   * Can be overridden by components.
    *
    * @returns {object}
    */
@@ -125,6 +126,12 @@ Component.prototype = {
     return transformKeysToCamelCase(styleParser.parse(attrs));
   },
 
+  /**
+   * Serializes component data from object to string.
+   * Can be overridden by components.
+   *
+   * @returns {string}
+   */
   stringifyAttributes: function (attrs) {
     if (typeof attrs !== 'object') { return attrs; }
     return styleParser.stringify(attrs);
