@@ -148,7 +148,7 @@ module.exports = registerElement('vr-animation', {
 
         var attribute = data.attribute;
         var begin = parseInt(data.begin, 10);
-        var currentValue = el.getComputedAttribute(attribute);
+        var currentValue = el.getComponentData(attribute);
         var direction = this.getDirection(data.direction);
         var easing = EASING_FUNCTIONS[data.easing];
         var fill = data.fill;

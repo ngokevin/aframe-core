@@ -45,7 +45,7 @@ module.exports.Component = registerComponent('wasd-controls', {
       velocity.x -= velocity.x * easing * delta;
       velocity.z -= velocity.z * easing * delta;
 
-      var position = el.getComputedAttribute('position');
+      var position = el.getComponentData('position');
 
       if (this.data.enabled) {
         if (keys[65]) { velocity.x -= acceleration * delta; } // Left

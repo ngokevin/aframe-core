@@ -42,8 +42,7 @@ var proto = {
     value: function () {
       this.addToParent();
       this.load();
-    },
-    writable: window.debug
+    }
   },
 
   /**
@@ -75,16 +74,14 @@ var proto = {
         return;
       }
       this.updateComponent(attr, oldVal, newVal);
-    },
-    writable: window.debug
+    }
   },
 
   detachedCallback: {
     value: function () {
       if (!this.parentEl) { return; }
       this.parentEl.remove(this);
-    },
-    writable: window.debug
+    }
   },
 
   applyMixin: {
@@ -94,8 +91,7 @@ var proto = {
         return;
       }
       this.updateComponent(attr);
-    },
-    writable: window.debug
+    }
   },
 
   mapStateMixins: {
@@ -109,8 +105,7 @@ var proto = {
         op(mixinId);
       });
       this.updateComponents();
-    },
-    writable: window.debug
+    }
   },
 
   updateStateMixins: {
@@ -135,8 +130,7 @@ var proto = {
           self.registerMixin(mixinId);
         });
       });
-    },
-    writable: window.debug
+    }
   },
 
   add: {
@@ -145,8 +139,7 @@ var proto = {
         VRUtils.error("Trying to add an object3D that doesn't exist");
       }
       this.object3D.add(el.object3D);
-    },
-    writable: window.debug
+    }
   },
 
   addToParent: {
@@ -168,8 +161,7 @@ var proto = {
         self.attachedToParent = true;
         parent.add(self);
       }
-    },
-    writable: window.debug
+    }
   },
 
   load: {
@@ -195,8 +187,7 @@ var proto = {
   remove: {
     value: function (el) {
       this.object3D.remove(el.object3D);
-    },
-    writable: window.debug
+    }
   },
 
   initComponents: {
@@ -206,8 +197,7 @@ var proto = {
       keys.forEach(function (key) {
         self.initComponent(key);
       });
-    },
-    writable: window.debug
+    }
   },
 
   /**
@@ -268,8 +258,7 @@ var proto = {
       var components = Object.keys(this.components);
       // Updates components
       components.forEach(this.updateComponent.bind(this));
-    },
-    writable: window.debug
+    }
   },
 
   /**
@@ -298,8 +287,7 @@ var proto = {
       }
       // Component not yet initialized. Initialize component.
       this.initComponent(name);
-    },
-    writable: window.debug
+    }
   },
 
   setAttribute: {
@@ -309,8 +297,7 @@ var proto = {
         value = component.stringifyAttributes(value);
       }
       HTMLElement.prototype.setAttribute.call(this, attr, value);
-    },
-    writable: window.debug
+    }
   },
 
   /**
@@ -327,8 +314,24 @@ var proto = {
       var value = HTMLElement.prototype.getAttribute.call(this, attr);
       if (!component || typeof value !== 'string') { return value; }
       return component.parseAttributesString(value);
-    },
-    writable: window.debug
+    }
+  },
+
+  /**
+   *
+   * @param {string} componentName
+   * @param {string} attributeName
+   * @param defaultValue
+   * @returns Attribute value if it exists, else defaultValue, else null.
+   */
+  getComponentAttribute: {
+    value: function (componentName, attributeName, defaultValue) {
+      var componentData = this.getComponentData(componentName);
+      if (componentData) {
+        return componentData[attributeName] || defaultValue;
+      }
+      return defaultValue || null;
+    }
   },
 
   /**
@@ -336,15 +339,13 @@ var proto = {
    * mixins and defaults.
    *
    * @param {string} attr
-   * @returns {object|string} Object if component, else string.
+   * @returns {object} Object if component, else null.
    */
-  getComputedAttribute: {
-    value: function (attr) {
-      var component = this.components[attr];
+  getComponentData: {
+    value: function (componentName) {
+      var component = this.components[componentName];
       if (component) { return component.getData(); }
-      return HTMLElement.prototype.getAttribute.call(this, attr);
-    },
-    writable: window.debug
+    }
   },
 
   addState: {
@@ -353,8 +354,7 @@ var proto = {
       this.states.push(state);
       this.mapStateMixins(state, this.registerMixin.bind(this));
       this.emit('stateadded', {state: state});
-    },
-    writable: window.debug
+    }
   },
 
   removeState: {
@@ -364,8 +364,7 @@ var proto = {
       this.states.splice(stateIndex, 1);
       this.mapStateMixins(state, this.unregisterMixin.bind(this));
       this.emit('stateremoved', {state: state});
-    },
-    writable: window.debug
+    }
   },
 
   /**
@@ -379,8 +378,7 @@ var proto = {
         if (elState === state) { is = index; }
       });
       return is;
-    },
-    writable: window.debug
+    }
   }
 };
 
