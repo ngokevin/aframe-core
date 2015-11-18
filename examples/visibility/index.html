@@ -69,14 +69,14 @@
               redSphere.setAttribute('visible', false);
               break;
             case greenCylinder:
-              var oldVisible = greenCylinder.getComputedAttribute('visible');
+              var oldVisible = greenCylinder.getComponentData('visible');
               // See issue: https://github.com/MozVR/aframe-core/issues/349
               if (oldVisible === null) { oldVisible = true; }
               greenCylinder.setAttribute('visible', !oldVisible);
               break;
             case pinkTorus:
               // Yes, this is gross. See https://github.com/MozVR/aframe-core/issues/235
-              var oldMaterial = pinkTorus.getComputedAttribute('material');
+              var oldMaterial = pinkTorus.getComponentData('material');
               var oldOpacity = oldMaterial.opacity;
               var newOpacity = oldOpacity === 1 ? 0 : 1;
               var newMaterial = oldMaterial;

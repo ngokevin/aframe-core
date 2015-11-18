@@ -159,19 +159,54 @@ suite('vr-object', function () {
     });
   });
 
-  suite('getComputedAttribute', function () {
-    test('returns fully parsed component data', function (done) {
+  suite('getComponentAttribute', function () {
+    test('gets an attribute', function (done) {
+      var el = entityFactory();
+      el.setAttribute('geometry', 'primitive: box; width: 5');
+
+      el.addEventListener('loaded', function () {
+        process.nextTick(function () {
+          assert.equal(el.getComponentAttribute('geometry', 'primitive'),
+                       'box');
+          assert.equal(el.getComponentAttribute('geometry', 'width'), 5);
+          assert.ok(el.getComponentAttribute('geometry', 'height'));
+          done();
+        });
+      });
+    });
+
+    test('returns null if attribute not defined', function (done) {
+      var el = entityFactory();
+      el.addEventListener('loaded', function () {
+        assert.notOk(el.getComponentAttribute('geometry', 'color'));
+        done();
+      });
+    });
+  });
+
+  suite('getComponentData', function () {
+    test('returns full component data', function (done) {
       var componentData;
       var el = entityFactory();
       el.addEventListener('loaded', function () {
         el.setAttribute('geometry', 'primitive: box; width: 5');
         process.nextTick(function () {
-          componentData = el.getComputedAttribute('geometry');
+          componentData = el.getComponentData('geometry');
           assert.equal(componentData.primitive, 'box');
           assert.equal(componentData.width, 5);
           assert.ok('height' in componentData);
           done();
         });
+      });
+    });
+
+    test('returns null if not component', function (done) {
+      var componentData;
+      var el = entityFactory();
+      el.addEventListener('loaded', function () {
+        componentData = el.getComponentData('geometry');
+        assert.notOk(componentData);
+        done();
       });
     });
   });
@@ -182,6 +217,46 @@ suite('vr-object', function () {
       var positionObj = { x: 10, y: 20, z: 30 };
       el.setAttribute('position', positionObj);
       assert.ok(el.outerHTML.indexOf('position="10 20 30"') !== -1);
+    });
+  });
+
+  suite('setComponentAttribute', function () {
+    test('sets component attribute that is implicitly set', function (done) {
+      var el = entityFactory();
+      el.setAttribute('light', 'type: ambient');
+      el.addEventListener('loaded', function () {
+        el.setComponentAttribute('light', 'color', '#F0F');
+        process.nextTick(function () {
+          assert.equal(el.getComponentData('light').type, 'ambient');
+          assert.equal(el.getComponentData('light').color, '#F0F');
+          done();
+        });
+      });
+    });
+
+    test('sets component attribute that is explicitly set', function (done) {
+      var el = entityFactory();
+      el.setAttribute('light', 'type: ambient; color: #FFF');
+      el.addEventListener('loaded', function () {
+        el.setComponentAttribute('light', 'color', '#F0F');
+        process.nextTick(function () {
+          assert.equal(el.getComponentData('light').type, 'ambient');
+          assert.equal(el.getComponentData('light').color, '#F0F');
+          done();
+        });
+      });
+    });
+
+    test('does not do anything if value does not change', function (done) {
+      var el = entityFactory();
+      el.setAttribute('light', 'type: ambient');
+      el.addEventListener('loaded', function () {
+        el.setComponentAttribute('light', 'type', 'ambient');
+        process.nextTick(function () {
+          assert.equal(el.getComponentData('light').type, 'ambient');
+          done();
+        });
+      });
     });
   });
 });
