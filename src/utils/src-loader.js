@@ -54,6 +54,7 @@ function validateSrc (src, isImageCb, isVideoCb) {
           must be wrapped by `url()`.
  */
 function validateCubemapSrc (src, cb) {
+  console.error('º', src);
   var aCubemap;
   var cubemapSrcRegex = '';
   var i;
