@@ -10,6 +10,7 @@ require('../components/look-at');
 require('../components/look-controls');
 require('../components/material');
 require('../components/position');
+require('../components/pivot');
 require('../components/raycaster');
 require('../components/rotation');
 require('../components/scale');
