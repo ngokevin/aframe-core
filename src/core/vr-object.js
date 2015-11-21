@@ -48,8 +48,7 @@ var proto = {
     value: function () {
       this.addToParent();
       this.load();
-    },
-    writable: window.debug
+    }
   },
 
   /**
@@ -81,8 +80,7 @@ var proto = {
         return;
       }
       this.updateComponent(attr, oldVal, newVal);
-    },
-    writable: window.debug
+    }
   },
 
   /**
@@ -94,8 +92,7 @@ var proto = {
     value: function () {
       if (!this.parentEl || this.isScene) { return; }
       this.parentEl.remove(this);
-    },
-    writable: window.debug
+    }
   },
 
   applyMixin: {
@@ -105,8 +102,7 @@ var proto = {
         return;
       }
       this.updateComponent(attr);
-    },
-    writable: window.debug
+    }
   },
 
   mapStateMixins: {
@@ -120,8 +116,7 @@ var proto = {
         op(mixinId);
       });
       this.updateComponents();
-    },
-    writable: window.debug
+    }
   },
 
   updateStateMixins: {
@@ -146,8 +141,7 @@ var proto = {
           self.registerMixin(mixinId);
         });
       });
-    },
-    writable: window.debug
+    }
   },
 
   add: {
@@ -156,8 +150,7 @@ var proto = {
         error("Trying to add an object3D that doesn't exist");
       }
       this.object3D.add(el.object3D);
-    },
-    writable: window.debug
+    }
   },
 
   addToParent: {
@@ -179,8 +172,7 @@ var proto = {
         self.attachedToParent = true;
         parent.add(self);
       }
-    },
-    writable: window.debug
+    }
   },
 
   load: {
@@ -206,8 +198,7 @@ var proto = {
   remove: {
     value: function (el) {
       this.object3D.remove(el.object3D);
-    },
-    writable: window.debug
+    }
   },
 
   initComponents: {
@@ -217,8 +208,7 @@ var proto = {
       keys.forEach(function (key) {
         self.initComponent(key);
       });
-    },
-    writable: window.debug
+    }
   },
 
   /**
@@ -279,8 +269,7 @@ var proto = {
       var components = Object.keys(this.components);
       // Updates components
       components.forEach(this.updateComponent.bind(this));
-    },
-    writable: window.debug
+    }
   },
 
   /**
@@ -309,25 +298,51 @@ var proto = {
       }
       // Component not yet initialized. Initialize component.
       this.initComponent(name);
-    },
-    writable: window.debug
+    }
   },
 
+  /**
+   * If attribute is a component, setAttribute will apply the value to the
+   * existing component data, not replace it. Examples:
+   *
+   * setAttribute('id', 'my-element');
+   * setAttribute('material', { color: 'crimson' });
+   * setAttribute('material', 'color', 'crimson');
+   *
+   * @param {string} attr - attribute name. setAttribute will behave
+   *        magically if the attribute name corresponds to a component.
+   * @param {string|object} value - If a string, setAttribute will behave
+   *        normally. If it is an object, the value will be mixed into the
+   *        component.
+   * @param componentAttrValue - If defined, value will act as the attribute
+   *        name and setAttribute will only set a single component attribute.
+   */
   setAttribute: {
-    value: function (attr, value) {
+    value: function (attr, value, componentAttrValue) {
       var component = VRComponents[attr];
-      if (component && typeof value === 'object') {
+      var partialComponentData;
+
+      // Do special magic if attribute is associated with a component.
+      if (component) {
+        partialComponentData = this.getAttribute(attr) || {};
+        if (typeof value === 'object') {
+          value = VRUtils.extend({}, partialComponentData, value);
+        } else if (typeof value === 'string' &&
+                   componentAttrValue !== undefined) {
+          partialComponentData[value] = componentAttrValue;
+          value = partialComponentData;
+        }
         value = component.stringifyAttributes(value);
       }
+
       HTMLElement.prototype.setAttribute.call(this, attr, value);
-    },
-    writable: window.debug
+    }
   },
 
   /**
    * If attribute is a component, it parses the style-like string into an
    * object. Returned component data does not include applied mixins or
-   * defaults.
+   * defaults (i.e., partial component data).
    *
    * @param {string} attr
    * @returns {object|string} Object if component, else string.
@@ -338,13 +353,12 @@ var proto = {
       var value = HTMLElement.prototype.getAttribute.call(this, attr);
       if (!component || typeof value !== 'string') { return value; }
       return component.parseAttributesString(value);
-    },
-    writable: window.debug
+    }
   },
 
   /**
    * If attribute is a component, it returns component data including applied
-   * mixins and defaults.
+   * mixins and defaults. Analog to getComputedStyle.
    *
    * @param {string} attr
    * @returns {object|string} Object if component, else string.
@@ -354,8 +368,7 @@ var proto = {
       var component = this.components[attr];
       if (component) { return component.getData(); }
       return HTMLElement.prototype.getAttribute.call(this, attr);
-    },
-    writable: window.debug
+    }
   },
 
   addState: {
@@ -364,8 +377,7 @@ var proto = {
       this.states.push(state);
       this.mapStateMixins(state, this.registerMixin.bind(this));
       this.emit('stateadded', {state: state});
-    },
-    writable: window.debug
+    }
   },
 
   removeState: {
@@ -375,8 +387,7 @@ var proto = {
       this.states.splice(stateIndex, 1);
       this.mapStateMixins(state, this.unregisterMixin.bind(this));
       this.emit('stateremoved', {state: state});
-    },
-    writable: window.debug
+    }
   },
 
   /**
@@ -390,8 +401,7 @@ var proto = {
         if (elState === state) { is = index; }
       });
       return is;
-    },
-    writable: window.debug
+    }
   }
 };
 
