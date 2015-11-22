@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Visibility</title>
+    <meta name="description" content="Visibility — A-Frame Core">
+    <link rel="stylesheet" type="text/css" href="../../style/aframe-core.css">
+    <link rel="stylesheet" type="text/css" href="../_style/main.css">
+    <script src="../../build/aframe-core.js"></script>
+  </head>
+  <body>
+    <a-assets>
+      <a-mixin id="cube" geometry="primitive: box"></a-mixin>
+      <a-mixin id="cube-hovered" material="color: pink"></a-mixin>
+      <a-mixin id="cube-selected" material="color: cyan"></a-mixin>
+      <a-mixin id="red" material="color: red"></a-mixin>
+      <a-mixin id="green" material="color: green"></a-mixin>
+      <a-mixin id="blue" material="color: blue"></a-mixin>
+      <a-mixin id="yellow" material="color: yellow"></a-mixin>
+      <a-mixin id="sphere" geometry="primitive: sphere"></a-mixin>
+    </a-assets>
+
+    <a-scene stats="true">
+      <a-object position="0 0 20">
+        <a-object camera="fov: 45" look-controls wasd-controls>
+          <a-object position="0 0 -5"
+                     geometry="primitive: ring; outerRadius: 0.30;
+                               innerRadius: 0.20"
+                     material="color: red; shader: flat"
+                     cursor="maxDistance: 30"></a-object>
+        </a-object>
+      </a-object>
+
+      <a-object id="blueCube"
+        position="5 0 0"
+        material="color: blue"
+        geometry="primitive: box"
+        rotation="25 25 0"></a-object>
+
+      <a-object id="redSphere"
+        position="5 0 0"
+        material="color: red"
+        geometry="primitive: sphere; radius: 5"
+        visible="false"></a-object>
+
+      <a-object id="greenCylinder"
+        position="-7 0 0"
+        rotation="25 25 0"
+        material="color: green"
+        geometry="primitive: cylinder; radius: 5"></a-object>
+
+      <a-object id="pinkTorus"
+        position="16 0 2"
+        rotation="25 -25 0"
+        material="color: hotpink"
+        geometry="primitive: torus; radius: 2.5"></a-object>
+    </a-scene>
+    <script>
+      (function () {
+        var blueCube = document.querySelector('#blueCube');
+        var redSphere = document.querySelector('#redSphere');
+        var greenCylinder = document.querySelector('#greenCylinder');
+        document.addEventListener('click', function (e) {
+          switch (e.target) {
+            case blueCube:
+              redSphere.setAttribute('visible', true);
+              break;
+            case redSphere:
+              redSphere.setAttribute('visible', false);
+              break;
+            case greenCylinder:
+              var oldVisible = greenCylinder.getComputedAttribute('visible');
+              // See issue: https://github.com/MozVR/aframe-core/issues/349
+              if (oldVisible === null) { oldVisible = true; }
+              greenCylinder.setAttribute('visible', !oldVisible);
+              break;
+            case pinkTorus:
+              // Yes, this is gross. See https://github.com/MozVR/aframe-core/issues/235
+              var oldMaterial = pinkTorus.getComputedAttribute('material');
+              var oldOpacity = oldMaterial.opacity;
+              var newOpacity = oldOpacity === 1 ? 0 : 1;
+              var newMaterial = oldMaterial;
+              newMaterial.opacity = newOpacity;
+              pinkTorus.setAttribute('material', newMaterial);
+              break;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

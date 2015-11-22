@@ -1,13 +1,13 @@
 var Component = require('./component');
-var utils = require('../vr-utils');
+var debug = require('../utils/debug');
 
-// To keep track of registered components
-var components = {};
+var components = {};  // To keep track of registered components.
+var error = debug('core:register-component:error');
 
 module.exports.registerComponent = function (name, proto) {
   var NewComponent;
   if (components[name]) {
-    utils.error('The component ' + name + ' has been already registered');
+    error('The component "' + name + '" has been already registered');
   }
   NewComponent = function (el) {
     Component.call(this, el);

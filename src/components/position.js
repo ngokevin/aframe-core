@@ -1,6 +1,6 @@
-var coordinateParser = require('./coordinate-parser');
+var coordinateParser = require('../utils/coordinate-parser');
 var registerComponent = require('../core/register-component').registerComponent;
-var utils = require('../vr-utils');
+var utils = require('../utils/');
 
 var proto = {
   defaults: {
@@ -21,5 +21,5 @@ var proto = {
   }
 };
 
-utils.mixin(proto, coordinateParser);
+utils.extend(proto, coordinateParser);
 module.exports.Component = registerComponent('position', proto);

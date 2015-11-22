@@ -1,11 +1,19 @@
+var debug = require('../utils/debug');
 var registerComponent = require('../core/register-component').registerComponent;
 var THREE = require('../../lib/three');
-var VRUtils = require('../vr-utils');
+
+var warn = debug('components:geometry:warn');
+
+var DEFAULT_RADIUS = 5;
 
 /**
- * Geometry component. Combined with material component to make mesh in
+ * Geometry component. Combined with material component to make a mesh in
  * 3D object.
  *
+ * TODO: rename component attributes to be consistent with three.js parameters
+ *       names is exposed in object3D.geometry.parameters.
+ *
+ * @param {number} [arc=2 * PI]
  * @param {number} depth
  * @param {number} height
  * @param {number} innerRadius
@@ -20,7 +28,7 @@ var VRUtils = require('../vr-utils');
  * @param {number} segmentsRadius
  * @param {number} segmentsWidth
  * @param {number} thetaLength
- * @param {number} thetaSTart
+ * @param {number} thetaStart
  * @param {number} tube
  * @param {number} tubularSegments
  * @param {number} width
@@ -28,15 +36,18 @@ var VRUtils = require('../vr-utils');
 module.exports.Component = registerComponent('geometry', {
   defaults: {
     value: {
+      arc: 2 * Math.PI,
       depth: 5,
       height: 5,
       innerRadius: 5,
       openEnded: false,
       outerRadius: 7,
       p: 2,
-      primitive: null,
+      primitive: '',
       q: 3,
-      radius: 5,
+      radius: DEFAULT_RADIUS,
+      radiusTop: DEFAULT_RADIUS,
+      radiusBottom: DEFAULT_RADIUS,
       segments: 32,
       segmentsHeight: 18,
       segmentsRadius: 36,
@@ -49,15 +60,35 @@ module.exports.Component = registerComponent('geometry', {
     }
   },
 
+  /**
+   * Creates a new geometry on every update as there's not an easy way to
+   * update a geometry that would be faster than just creating a new one.
+   */
   update: {
     value: function () {
       this.el.object3D.geometry = this.getGeometry();
     }
   },
 
+  /**
+   * Removes geometry on remove (callback).
+   */
+  remove: {
+    value: function () {
+      this.el.object3D.geometry = null;
+    }
+  },
+
+  /**
+   * @returns {object} geometry
+   */
   getGeometry: {
     value: function () {
       var data = this.data;
+      var defaults = this.defaults;
+      var radiusBottom;
+      var radiusTop;
+
       switch (data.primitive) {
         case 'box': {
           return new THREE.BoxGeometry(data.width, data.height, data.depth);
@@ -67,8 +98,15 @@ module.exports.Component = registerComponent('geometry', {
             data.radius, data.segments, data.thetaStart, data.thetaLength);
         }
         case 'cylinder': {
+          // Shortcut for specifying both top and bottom radius.
+          radiusTop = data.radius;
+          radiusBottom = data.radius;
+          if (data.radius === defaults.radius) {
+            radiusTop = data.radiusTop;
+            radiusBottom = data.radiusBottom;
+          }
           return new THREE.CylinderGeometry(
-            data.radius, data.radius, data.height, data.segmentsRadius,
+            radiusTop, radiusBottom, data.height, data.segmentsRadius,
             data.segmentsHeight, data.openEnded, data.thetaStart,
             data.thetaLength);
         }
@@ -85,7 +123,8 @@ module.exports.Component = registerComponent('geometry', {
         }
         case 'torus': {
           return new THREE.TorusGeometry(
-            data.radius, data.tube, data.segments, data.segments);
+            data.radius, data.tube, data.segments, data.tubularSegments,
+            data.arc);
         }
         case 'torusKnot': {
           return new THREE.TorusKnotGeometry(
@@ -93,7 +132,7 @@ module.exports.Component = registerComponent('geometry', {
             data.p, data.q);
         }
         default: {
-          VRUtils.warn('Primitive type not supported: ' + data.primitive);
+          warn('Primitive type not supported: ' + data.primitive);
           return new THREE.Geometry();
         }
       }
