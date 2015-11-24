@@ -363,33 +363,53 @@ var proto = {
   },
 
   /**
-   * If attribute is a component, it parses the style-like string into an object.
-   * Returned component data does not include applied mixins or defaults.
+   * If `attr` is a component, returns JUST the component data specified in the HTML
+   * by parsing the style-like string into an object. Like a partial version of
+   * `getComputedAttribute` as returned component data does not include applied mixins or
+   * defaults.
    *
-   * @param {string} attr
+   * If `componentAttr` is passed, look up a single attribute of the component.
+   *
+   * If `attr` is not a component, fall back to HTML getAttribute.
+   *
+   * @param {string} componentName
+   * @param {string} componentAttr
    * @returns {object|string} Object if component, else string.
    */
   getAttribute: {
-    value: function (attr) {
-      var component = AComponents[attr];
-      var value = HTMLElement.prototype.getAttribute.call(this, attr);
+    value: function (componentName, componentAttr) {
+      var component = AComponents[componentName];
+      var data;
+      var value = HTMLElement.prototype.getAttribute.call(this, componentName);
       if (!component || typeof value !== 'string') { return value; }
-      return component.parseAttributesString(value);
+
+      data = component.parseAttributesString(value);
+      if (componentAttr) { return data[componentAttr]; }
+      return data;
     }
   },
 
   /**
-   * If attribute is a component, it returns component data including applied mixins and
+   * If `attr` is a component, returns ALL component data including applied mixins and
    * defaults.
    *
-   * @param {string} attr
+   * If `componentAttr` is passed, look up a single attribute of the component.
+   *
+   * If `attr` is not a component, fall back to HTML getAttribute.
+   *
+   * @param {string} componentName
+   * @param {string} componentAttr
    * @returns {object|string} Object if component, else string.
    */
   getComputedAttribute: {
-    value: function (attr) {
-      var component = this.components[attr];
-      if (component) { return component.getData(); }
-      return HTMLElement.prototype.getAttribute.call(this, attr);
+    value: function (componentName, componentAttr) {
+      var component = this.components[componentName];
+      if (component) {
+        var data = component.getData();
+        if (componentAttr) { return data[componentAttr]; }
+        return data;
+      }
+      return HTMLElement.prototype.getAttribute.call(this, componentName);
     }
   },
 
