@@ -8,6 +8,7 @@ require('../components/light');
 require('../components/loader');
 require('../components/look-at');
 require('../components/look-controls');
+require('../components/match-device');
 require('../components/material');
 require('../components/position');
 require('../components/raycaster');

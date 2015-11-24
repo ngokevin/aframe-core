@@ -9,30 +9,47 @@
     <script src="../../build/aframe-core.js"></script>
   </head>
   <body>
-    <a-asset>
+    <a-assets>
       <a-mixin id="link"
-               geometry="primitive: plane; width: 1.0; height: 1.0">
-      </a-mixin>
-      <a-mixin id="link-hovered" geometry="primitive: plane; width: 1.2;
-                                           height: 1.2">
-      </a-mixin>
-      <a-mixin id="link-selected" geometry="primitive: plane; width: 1.4;
-                                            height: 1.4">
-      </a-mixin>
-      <a-mixin id="cursor" geometry="primitive: ring; outerRadius: 0.20;
-                                     innerRadius: 0.14"
+               geometry="primitive: plane; width: 1.0; height: 1.0"></a-mixin>
+      <a-mixin id="link-hovered"
+               geometry="primitive: plane; width: 1.2; height: 1.2"></a-mixin>
+      <a-mixin id="link-selected"
+               geometry="primitive: plane; width: 1.4; height: 1.4"></a-mixin>
+
+      <a-mixin id="cursor-desktop"
+               geometry="primitive: ring; outerRadius: 0.05; innerRadius: 0.035"
                material="color: gray"></a-mixin>
-      <a-mixin id="cursor-hovering" material="color: springgreen"></a-mixin>
-    </a-asset>
+      <a-mixin id="cursor-desktop-hovering"
+               material="color: #111"></a-mixin>
+
+      <a-mixin id="cursor-mobile"
+               geometry="primitive: ring; outerRadius: 0.20; innerRadius: 0.14"
+               material="color: gray"></a-mixin>
+      <a-mixin id="cursor-mobile-hovering"
+               material="color: springgreen"></a-mixin>
+    </a-assets>
+
     <a-scene stats="true">
 
       <!-- Controls -->
       <a-object camera="fov: 45" look-controls>
-        <a-object mixin="cursor" position="0 0 -3"
-                  cursor="timeout: 1500; fuse: true">
+         <a-object match-device="mobile"
+                   mixin="cursor-mobile"
+                   position="0 0 -3"
+                   cursor="timeout: 1500; fuse: true">
           <a-animation begin="hovering" easing="ease-in" attribute="scale"
                        fill="backwards" from="1 1 1" to="0.2 0.2 0.2" dur="1500">
           </a-animation>
+        </a-object>
+
+        <a-object match-device="desktop"
+                  mixin="cursor-desktop"
+                  position="0 0 -3"
+                  cursor>
+          <a-animation begin="click" easing="ease-in" attribute="scale" fill="forwards"
+                       from="1 1 1" to="0.1 0.1 0.1" dur="150"
+                       direction="alternate" repeat="1"></a-animation>
         </a-object>
       </a-object>
 
