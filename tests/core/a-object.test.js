@@ -129,6 +129,21 @@ suite('a-object', function () {
       assert.equal(componentData.width, 5);
       assert.notOk('height' in componentData);
     });
+
+    test('can return single component attribute', function () {
+      var el = this.el;
+      el.setAttribute('material', 'color: crimson; shader: flat');
+      assert.ok(el.getAttribute('material', 'color'), 'crimson');
+      assert.ok(el.getAttribute('material', 'shader'), 'flat');
+      assert.notOk(el.getAttribute('material', 'roughness'));
+    });
+
+    test('falls back to HTML getAttribute if not a component', function () {
+      var el = this.el;
+      el.setAttribute('class', 'pied piper');
+      assert.equal(el.getAttribute('class'), 'pied piper');
+      assert.equal(el.getAttribute('class', 'room'), 'pied piper');
+    });
   });
 
   suite('getComputedAttribute', function () {
@@ -140,6 +155,20 @@ suite('a-object', function () {
       assert.equal(componentData.primitive, 'box');
       assert.equal(componentData.width, 5);
       assert.ok('height' in componentData);
+    });
+
+    test('can return single component attribute', function () {
+      var el = this.el;
+      el.setAttribute('geometry', 'primitive: box; width: 5');
+      assert.ok(el.getComputedAttribute('geometry', 'height'));
+      assert.equal(el.getComputedAttribute('geometry', 'width'), 5);
+    });
+
+    test('falls back to HTML getAttribute if not a component', function () {
+      var el = this.el;
+      el.setAttribute('class', 'pied piper');
+      assert.equal(el.getComputedAttribute('class'), 'pied piper');
+      assert.equal(el.getComputedAttribute('class', 'room'), 'pied piper');
     });
   });
 
