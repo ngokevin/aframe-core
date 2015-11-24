@@ -396,6 +396,11 @@ var proto = {
 
   addState: {
     value: function (state) {
+      var realNode = this.getRealNode();
+      if (this !== realNode) {
+        realNode.addState(state);
+      }
+
       if (this.is(state)) { return; }
       this.states.push(state);
       this.mapStateMixins(state, this.registerMixin.bind(this));
@@ -405,6 +410,11 @@ var proto = {
 
   removeState: {
     value: function (state) {
+      var realNode = this.getRealNode();
+      if (this !== realNode) {
+        realNode.removeState(state);
+      }
+
       var stateIndex = this.is(state);
       if (stateIndex === false) { return; }
       this.states.splice(stateIndex, 1);
