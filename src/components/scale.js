@@ -1,8 +1,11 @@
-var coordinateParser = require('./coordinate-parser');
+var coordinatesMixin = require('../utils/coordinates').componentMixin;
 var registerComponent = require('../core/register-component').registerComponent;
-var utils = require('../vr-utils');
+var utils = require('../utils/');
 
-var proto = {
+// Avoids triggering a zero-determinant which makes object3D matrix non-invertible.
+var zeroScale = 0.00001;
+
+module.exports.Component = registerComponent('scale', utils.extend({
   defaults: {
     value: {
       x: 1,
@@ -15,10 +18,10 @@ var proto = {
     value: function () {
       var data = this.data;
       var object3D = this.el.object3D;
-      object3D.scale.set(data.x, data.y, data.z);
+      var x = data.x === 0 ? zeroScale : data.x;
+      var y = data.y === 0 ? zeroScale : data.y;
+      var z = data.z === 0 ? zeroScale : data.z;
+      object3D.scale.set(x, y, z);
     }
   }
-};
-
-utils.mixin(proto, coordinateParser);
-module.exports.Component = registerComponent('scale', proto);
+}, coordinatesMixin));

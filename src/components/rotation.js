@@ -1,9 +1,9 @@
-var coordinateParser = require('./coordinate-parser');
+var coordinatesMixin = require('../utils/coordinates').componentMixin;
 var registerComponent = require('../core/register-component').registerComponent;
 var THREE = require('../../lib/three');
-var utils = require('../vr-utils');
+var utils = require('../utils/');
 
-var proto = {
+module.exports.Component = registerComponent('rotation', utils.extend({
   defaults: {
     value: {
       x: 0,
@@ -12,19 +12,17 @@ var proto = {
     }
   },
 
+  /**
+   * Updates object3D rotation.
+   */
   update: {
     value: function () {
       var data = this.data;
       var object3D = this.el.object3D;
-      // Updates three.js object
-      var rotationX = THREE.Math.degToRad(data.x);
-      var rotationY = THREE.Math.degToRad(data.y);
-      var rotationZ = THREE.Math.degToRad(data.z);
-      // Updates three.js object
-      object3D.rotation.set(rotationX, rotationY, rotationZ);
+      object3D.rotation.set(THREE.Math.degToRad(data.x),
+                            THREE.Math.degToRad(data.y),
+                            THREE.Math.degToRad(data.z));
+      object3D.rotation.order = 'YXZ';
     }
   }
-};
-
-utils.mixin(proto, coordinateParser);
-module.exports.Component = registerComponent('rotation', proto);
+}, coordinatesMixin));

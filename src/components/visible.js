@@ -1,28 +1,30 @@
 var registerComponent = require('../core/register-component').registerComponent;
 
-var proto = {
+/**
+ * Visibility component.
+ *
+ * @param {bool}
+ */
+module.exports.Component = registerComponent('visible', {
   defaults: {
     value: true
   },
 
   update: {
     value: function () {
-      var object3D = this.el.object3D;
-      object3D.visible = this.data;
+      this.el.object3D.visible = this.data;
     }
   },
 
-  parseAttributesString: {
-    value: function (attrs) {
-      return attrs === 'true';
+  parse: {
+    value: function (value) {
+      return value === 'true';
     }
   },
 
-  stringifyAttributes: {
-    value: function (attrs) {
-      return attrs.toString();
+  stringify: {
+    value: function (value) {
+      return value.toString();
     }
   }
-};
-
-module.exports.Component = registerComponent('visible', proto);
+});
