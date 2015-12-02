@@ -49,8 +49,10 @@
     "ghpages": "node ./scripts/gh-pages",
     "gh-pages": "npm run ghpages",
     "release": "npm login && npm version patch --minor && npm publish",
-    "test": "karma start ./tests/karma.conf.js",
-    "test:ci": "TEST_ENV=ci karma start ./tests/karma.conf.js --single-run",
+    "test": "npm run test:single",
+    "test:start": "karma start ./tests/karma.conf.js",
+    "test:single": "npm run test:start -- --single-run",
+    "test:ci": "TEST_ENV=ci npm run test:single",
     "lint": "semistandard -v $(git ls-files '*.js') | snazzy",
     "precommit": "npm run lint"
   },
