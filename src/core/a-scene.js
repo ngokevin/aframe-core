@@ -22,6 +22,7 @@ var registerElement = re.registerElement;
  * @member {object} cameraEl - Set the entity with a camera component.
  * @member {object} canvas
  * @member {bool} defaultLightsEnabled - false if user has not added lights.
+ * @member {number} initialTime
  * @member {bool} insideIframe
  * @member {bool} insideLoader
  * @member {bool} isScene - Differentiates this as a scene entity as opposed
@@ -44,6 +45,7 @@ var AScene = module.exports = registerElement('a-scene', {
       value: function () {
         this.behaviors = [];
         this.defaultLightsEnabled = true;
+        this.initialTime = 0;
         this.insideIframe = window.top !== window.self;
         this.insideLoader = false;
         this.isScene = true;
@@ -221,8 +223,10 @@ var AScene = module.exports = registerElement('a-scene', {
           return;
         }
         this.resizeCanvas();
-        // Kick off the render loop.
-        this.render(performance.now());
+
+        // Kick off render loop.
+        this.initialTime = performance.now();
+        this.render(this.initialTime);
         this.renderLoopStarted = true;
         this.load();
       }
@@ -625,7 +629,7 @@ var AScene = module.exports = registerElement('a-scene', {
           stats('rAF').tick();
           stats('FPS').frame();
         }
-        TWEEN.update(t);
+        TWEEN.update(t - this.initialTime);
         this.behaviors.forEach(function (behavior) {
           behavior.update();
         });
