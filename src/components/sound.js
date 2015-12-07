@@ -16,7 +16,7 @@ var warn = debug('components:sound:warn');
 module.exports.Component = registerComponent('sound', {
   defaults: {
     value: {
-      autoplay: false,
+      autoplay: true,
       on: 'click',
       loop: false,
       volume: 1
