@@ -1,4 +1,5 @@
 var registerComponent = require('../core/register-component').registerComponent;
+var THREE = require('../../lib/three');
 var utils = require('../utils/');
 
 module.exports.Component = registerComponent('cursor', {
@@ -16,7 +17,8 @@ module.exports.Component = registerComponent('cursor', {
 
   init: {
     value: function () {
-      this.raycaster = this.el.components.raycaster;
+      var el = this.el;
+      this.raycaster = el.components.raycaster;
       // The cursor defaults to fuse in mobile environments
       this.schema.fuse.default = utils.isMobile();
       this.attachEventListeners();
@@ -75,13 +77,17 @@ module.exports.Component = registerComponent('cursor', {
       var self = this;
       var data = this.data;
       var el = evt.detail.el;
-      var distance = evt.detail.distance;
-      if (this.intersectedEl === el) { return; }
+      var distance = evt.detail.data.distance;
       if (distance >= this.data.maxDistance) { return; }
+      if (this.intersectedEl === el) {
+        this.moveToDepth(distance, evt.detail.data.point);
+        return;
+      }
       this.intersectedEl = el;
       el.addState('hovered');
       el.emit('mouseenter');
       this.el.addState('hovering');
+      this.moveToDepth(distance, evt.detail.data.point, evt.detail.data.face.normal);
       if (data.timeout === 0) { return; }
       if (!data.fuse) { return; }
       this.el.addState('fusing');
@@ -93,13 +99,38 @@ module.exports.Component = registerComponent('cursor', {
     }
   },
 
+  moveToDepth: {
+    value: function (distance, point) {
+      var el = this.el;
+      var object3D = el.object3D;
+      var vector = new THREE.Vector3();
+      var elPosition = el.getComputedAttribute('position');
+      if (!this.elPosition) { this.elPosition = elPosition; }
+      object3D.parent.updateMatrixWorld();
+      vector.setFromMatrixPosition(object3D.matrixWorld);
+      distance = point.sub(vector);
+      el.setAttribute('position', {
+        x: elPosition.x,
+        y: elPosition.y,
+        z: elPosition.z + distance.z + 0.4
+      });
+    }
+  },
+
   onIntersectionCleared: {
     value: function (evt) {
       var el = evt.detail.el;
+      var elPosition = this.elPosition;
       if (!el || !this.intersectedEl) { return; }
       this.intersectedEl = null;
       el.removeState('hovered');
       el.emit('mouseleave');
+      this.el.setAttribute('position', {
+        x: elPosition.x,
+        y: elPosition.y,
+        z: elPosition.z
+      });
+      this.elPosition = undefined;
       this.el.removeState('hovering');
       this.el.removeState('fusing');
       clearTimeout(this.fuseTimeout);
