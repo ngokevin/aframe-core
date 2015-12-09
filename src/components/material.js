@@ -82,7 +82,6 @@ module.exports.Component = registerComponent('material', {
       var material;
       var materialType = getMaterialType(data);
       var src = data.src;
-
       if (!oldData || getMaterialType(oldData) !== materialType) {
         material = this.createMaterial(getMaterialData(data), materialType);
       } else {
@@ -109,6 +108,29 @@ module.exports.Component = registerComponent('material', {
     }
   },
 
+  setupMaterial: {
+    value: function () {
+      var data = this.data;
+      var src = data.src;
+      var materialData;
+      var materialType = data.receiveLight ? 'MeshPhysicalMaterial' : 'MeshBasicMaterial';
+      var shaderEl = srcLoader.queryShader('#' + src);
+      if (shaderEl) { return shaderEl.material; }
+      materialData = {
+        color: new THREE.Color(data.color),
+        side: this.getSides(),
+        opacity: data.opacity,
+        transparent: data.transparent
+      };
+      if (materialType === 'MeshPhysicalMaterial') {
+        // Physical material parameters.
+        materialData.metalness = data.metalness;
+        materialData.roughness = data.roughness;
+      }
+      return this.updateOrCreateMaterial(materialData, materialType);
+    }
+  },
+
   /**
    * (Re)create new material. Has side-effects of setting `this.material` and updating
    * material registration in scene.
@@ -124,7 +146,9 @@ module.exports.Component = registerComponent('material', {
       if (this.material) {
         sceneEl.unregisterMaterial(this.material);
       }
-      material = this.material = this.el.object3D.material = new THREE[type](data);
+      var shaderEl = srcLoader.queryShader('#' + data.src);
+      if (shaderEl) { material = shaderEl.material; }
+      material = this.material = this.el.object3D.material = material || new THREE[type](data);
       sceneEl.registerMaterial(material);
       return material;
     }
@@ -305,6 +329,7 @@ function loadVideoTexture (material, src, height, width) {
  */
 function getMaterialData (data) {
   var materialData = {
+    src: data.src,
     color: data.color,
     side: data.side,
     opacity: data.opacity,

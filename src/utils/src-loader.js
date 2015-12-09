@@ -136,8 +136,25 @@ function validateAndGetQuerySelector (selector) {
   }
 }
 
+/**
+ * Checks if the selector is a valid shader element
+ * @param  {string} selector A CSS selector
+ * @return {boolean}          true if we find a valid a-shader element
+ */
+function queryShader (selector) {
+  var el;
+  try {
+    el = document.querySelector(selector);
+    if (el.tagName !== 'A-SHADER') { return null; }
+    return el;
+  } catch (e) { // Capture exception if it's not a valid selector
+    return null;
+  }
+}
+
 module.exports = {
   parseUrl: parseUrl,
+  queryShader: queryShader,
   validateSrc: validateSrc,
   validateCubemapSrc: validateCubemapSrc
 };
