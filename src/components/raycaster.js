@@ -83,9 +83,9 @@ module.exports.Component = registerComponent('raycaster', {
    * Remembers the last intersected element
    */
   setExistingIntersection: {
-    value: function (el, distance) {
+    value: function (el, intersectionData) {
       this.intersectedEl = el;
-      this.el.emit('intersection', { el: el, distance: distance });
+      this.el.emit('intersection', { el: el, data: intersectionData });
     }
   },
 
@@ -109,7 +109,7 @@ module.exports.Component = registerComponent('raycaster', {
       if (this.intersectedEl !== el) {
         this.clearExistingIntersection();
       }
-      this.setExistingIntersection(el, obj.distance);
+      this.setExistingIntersection(el, obj);
     }
   }
 
