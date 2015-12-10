@@ -182,6 +182,11 @@ module.exports = registerElement(
          */
         emit: {
           value: function (name, detail, bubbles) {
+            var realNode = this.getRealNode();
+            if (this !== realNode) {
+              realNode.emit(name, detail, bubbles);
+            }
+
             var self = this;
             detail = detail || {};
             if (bubbles === undefined) { bubbles = true; }
@@ -212,6 +217,21 @@ module.exports = registerElement(
             };
           },
           writable: window.debug
+        },
+
+        /**
+         * Returns the true node (useful for a wrapped object in a template instance).
+         */
+        getRealNode: {
+          value: function () {
+            if (this.tagName.toLowerCase() === 'a-root') {
+              return this.parentNode;
+            }
+            if (!this.previousElementSibling && !this.nextElementSibling && this.closest('a-root')) {
+              return this.closest('a-root').parentNode;
+            }
+            return this;
+          }
         }
       })
   }
