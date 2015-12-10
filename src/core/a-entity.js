@@ -3,7 +3,7 @@ var re = require('../a-register-element');
 var registerElement = re.registerElement;
 var isNode = re.isNode;
 
-var AComponents = require('./components').components;
+var components = require('./component').components;
 var ANode = require('./a-node');
 var debug = require('../utils/debug');
 var THREE = require('../../lib/three');
@@ -147,7 +147,9 @@ var proto = {
       function attach () {
         // To prevent an object to attach itself multiple times to the parent.
         self.attachedToParent = true;
-        parent.add(self);
+        if (parent.add) {
+          parent.add(self);
+        }
       }
     }
   },
@@ -209,7 +211,7 @@ var proto = {
       var isComponentDefined;
       // If it's not a component name or
       // If the component is already initialized
-      if (!AComponents[name] || this.components[name]) { return; }
+      if (!components[name] || this.components[name]) { return; }
       isComponentDefined = this.isComponentDefined(name);
       // If the component is not defined for the element
       if (!isComponentDefined && !isDependency) { return; }
@@ -220,7 +222,7 @@ var proto = {
       if (isDependency && !isComponentDefined) {
         this.setAttribute(name, '');
       } else {
-        this.components[name] = new AComponents[name].Component(this);
+        this.components[name] = new components[name].Component(this);
       }
       log('Component initialized: %s', name);
     }
@@ -229,11 +231,11 @@ var proto = {
   initComponentDependencies: {
     value: function (name) {
       var self = this;
-      var component = AComponents[name];
+      var component = components[name];
       var dependencies;
       // If the component doesn't exist
       if (!component) { return; }
-      dependencies = AComponents[name].dependencies;
+      dependencies = components[name].dependencies;
       if (!dependencies) { return; }
       dependencies.forEach(function (component) {
         self.initComponent(component, true);
@@ -244,8 +246,8 @@ var proto = {
   removeComponents: {
     value: function () {
       var self = this;
-      var components = Object.keys(this.components);
-      components.forEach(removeComponent);
+      var entityComponents = Object.keys(this.components);
+      entityComponents.forEach(removeComponent);
       function removeComponent (name) {
         self.components[name].remove();
         delete self.components[name];
@@ -256,9 +258,9 @@ var proto = {
   updateComponents: {
     value: function () {
       var self = this;
-      var components = Object.keys(AComponents);
+      var entityComponents = Object.keys(components);
       // Updates components
-      components.forEach(updateComponent);
+      entityComponents.forEach(updateComponent);
       function updateComponent (name) {
         var elValue = self.getAttribute(name);
         self.updateComponent(name, elValue);
@@ -317,7 +319,7 @@ var proto = {
    */
   removeAttribute: {
     value: function (attr, componentAttr) {
-      var component = AComponents[attr];
+      var component = components[attr];
       if (component) {
         if (componentAttr) {
           this.setAttribute(attr, componentAttr, undefined);
@@ -338,7 +340,7 @@ var proto = {
    */
   setEntityAttribute: {
     value: function (attr, oldVal, newVal) {
-      var component = AComponents[attr];
+      var component = components[attr];
       oldVal = oldVal || this.getAttribute(attr);
       // When creating objects programatically and setting attributes, the object is not part
       // of the scene until is inserted into the DOM.
@@ -372,9 +374,11 @@ var proto = {
   setAttribute: {
     value: function (attr, value, componentAttrValue) {
       var self = this;
-      var component = AComponents[attr];
+      var component = components[attr];
       var partialComponentData;
+      value = value === undefined ? '' : value;
       var valueStr = value;
+      var oldValue;
       if (component) {
         if (typeof value === 'string' && componentAttrValue !== undefined) {
           // Update currently-defined component data with the new attribute value.
@@ -385,8 +389,9 @@ var proto = {
         valueStr = component.stringify(value);
       }
 
+      oldValue = this.getAttribute(attr);
       ANode.prototype.setAttribute.call(self, attr, valueStr);
-      self.setEntityAttribute(attr, undefined, value);
+      self.setEntityAttribute(attr, oldValue, value);
     },
     writable: window.debug
   },
@@ -404,7 +409,7 @@ var proto = {
    */
   getAttribute: {
     value: function (attr) {
-      var component = AComponents[attr];
+      var component = components[attr];
       var value = HTMLElement.prototype.getAttribute.call(this, attr);
       if (!component || typeof value !== 'string') { return value; }
       return component.parse(value);

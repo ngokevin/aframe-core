@@ -1,5 +1,9 @@
+var debug = require('../utils/debug');
 var styleParser = require('style-attr');
 var utils = require('../utils/');
+
+var components = module.exports.components = {};  // Keep track of registered components.
+var error = debug('core:register-component:error');
 
 /**
  * Component class definition.
@@ -24,7 +28,7 @@ var utils = require('../utils/');
  * @member {function} parse
  * @member {function} stringify
  */
-var Component = function (el) {
+var Component = module.exports.Component = function (el) {
   var attrs = el.getAttribute(this.name);
   this.el = el;
   this.data = {};
@@ -35,10 +39,10 @@ var Component = function (el) {
 
 Component.prototype = {
   /**
-   * Contains default data values.
+   * Contains the type schema and defaults for the data values.
    * Data is coerced into the types of the values of the defaults.
    */
-  defaults: {},
+  schema: {},
 
   /**
    * Init handler. Similar to attachedCallback.
@@ -115,14 +119,11 @@ Component.prototype = {
     // Don't update if properties haven't changed
     if (utils.deepEqual(previousData, this.data)) { return; }
     this.update(previousData);
-    this.el.emit(
-      'componentchanged',
-      {
-        name: this.name,
-        newData: this.getData(),
-        oldData: previousData
-      }
-    );
+    this.el.emit('componentchanged', {
+      name: this.name,
+      newData: this.getData(),
+      oldData: previousData
+    });
   },
 
   /**
@@ -140,13 +141,16 @@ Component.prototype = {
   parseAttributes: function (newData) {
     var self = this;
     var data = {};
-    var defaults = self.defaults;
+    var schema = self.schema;
     var el = self.el;
     var mixinEls = el.mixinEls;
     var name = self.name;
 
     // 1. Default values (lowest precendence).
-    data = extendWithCheck(data, defaults);
+    Object.keys(schema).forEach(applyDefault);
+    function applyDefault (key) {
+      data[key] = schema[key].default;
+    }
 
     // 2. Mixin values.
     mixinEls.forEach(applyMixin);
@@ -159,8 +163,46 @@ Component.prototype = {
     data = extendWithCheck(data, newData);
 
     // Coerce to the type of the defaults.
-    this.data = utils.coerce(data, defaults);
+    this.data = utils.coerce(data, schema);
   }
+};
+
+/**
+ * Registers a component to A-Frame.
+ *
+ * @param {string} name - Component name.
+ * @param {object} definition - Component property and methods.
+ * @returns {object} Component.
+ */
+module.exports.registerComponent = function (name, definition) {
+  var NewComponent;
+  var proto = {};
+
+  // Format definition object to prototype object.
+  Object.keys(definition).forEach(function (key) {
+    proto[key] = {
+      value: definition[key],
+      writable: window.debug
+    };
+  });
+
+  if (components[name]) {
+    error('The component "' + name + '" has been already registered');
+  }
+  NewComponent = function (el) {
+    Component.call(this, el);
+  };
+  NewComponent.prototype = Object.create(Component.prototype, proto);
+  NewComponent.prototype.name = name;
+  NewComponent.prototype.constructor = NewComponent;
+  components[name] = {
+    Component: NewComponent,
+    dependencies: NewComponent.prototype.dependencies,
+    parse: NewComponent.prototype.parse.bind(NewComponent.prototype),
+    schema: NewComponent.prototype.schema,
+    stringify: NewComponent.prototype.stringify.bind(NewComponent.prototype)
+  };
+  return NewComponent;
 };
 
 /**
@@ -208,5 +250,3 @@ function transformKeysToCamelCase (obj) {
   });
   return camelCaseObj;
 }
-
-module.exports = Component;

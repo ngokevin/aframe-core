@@ -1,5 +1,5 @@
 var debug = require('../utils/debug');
-var registerComponent = require('../core/register-component').registerComponent;
+var registerComponent = require('../core/component').registerComponent;
 var THREE = require('../../lib/three');
 var utils = require('../utils');
 
@@ -44,66 +44,64 @@ var warn = debug('components:geometry:warn');
  * @param {number} [width=2] - Used by box, plane.
  */
 module.exports.Component = registerComponent('geometry', {
-  defaults: {
-    value: {
-      arc: 360,
-      depth: 2,
-      height: 2,
-      openEnded: false,
-      p: 2,
-      translate: { x: 0, y: 0, z: 0 },
-      primitive: '',
-      q: 3,
-      radius: DEFAULT_RADIUS,
-      radiusBottom: DEFAULT_RADIUS,
-      radiusInner: 0.8,
-      radiusOuter: 1.2,
-      radiusTop: DEFAULT_RADIUS,
-      radiusTubular: 0.2,
-      scaleHeight: 1,
-      segments: 8,
-      segmentsHeight: 18,
-      segmentsPhi: 8,
-      segmentsRadial: 36,
-      segmentsTheta: 8,
-      segmentsTubular: 8,
-      segmentsWidth: 36,
-      thetaLength: 360,
-      thetaStart: 0,
-      width: 2
-    }
+  schema: {
+    arc: { default: 360 },
+    depth: { default: 2, min: 0 },
+    height: { default: 2, min: 0 },
+    openEnded: { default: false },
+    p: { default: 2 },
+    translate: { default: { x: 0, y: 0, z: 0 } },
+    primitive: {
+      default: '',
+      oneOf: ['box', 'circle', 'cylinder', 'plane',
+              'ring', 'sphere', 'torus', 'torusKnot']
+    },
+    q: { default: 3 },
+    radius: { default: DEFAULT_RADIUS, min: 0 },
+    radiusBottom: { default: DEFAULT_RADIUS, min: 0 },
+    radiusInner: { default: 0.8, min: 0 },
+    radiusOuter: { default: 1.2, min: 0 },
+    radiusTop: { default: DEFAULT_RADIUS },
+    radiusTubular: { default: 0.2, min: 0 },
+    scaleHeight: { default: 1, min: 0 },
+    segments: { default: 8, min: 0 },
+    segmentsHeight: { default: 18, min: 0 },
+    segmentsPhi: { default: 8, min: 0 },
+    segmentsRadial: { default: 36, min: 0 },
+    segmentsTheta: { default: 8, min: 0 },
+    segmentsTubular: { default: 8, min: 0 },
+    segmentsWidth: { default: 36, min: 0 },
+    thetaLength: { default: 360, min: 0 },
+    thetaStart: { default: 0 },
+    width: { default: 2, min: 0 }
   },
 
   /**
    * Creates a new geometry on every update as there's not an easy way to
    * update a geometry that would be faster than just creating a new one.
    */
-  update: {
-    value: function (previousData) {
-      previousData = previousData || {};
-      var data = this.data;
-      var currentTranslate = previousData.translate || this.defaults.translate;
-      var diff = utils.diff(previousData, data);
-      var geometry = this.el.object3D.geometry;
-      var geometryNeedsUpdate = !(Object.keys(diff).length === 1 && 'translate' in diff);
-      var translateNeedsUpdate = !utils.deepEqual(data.translate, currentTranslate);
+  update: function (previousData) {
+    previousData = previousData || {};
+    var data = this.data;
+    var currentTranslate = previousData.translate || this.schema.translate.default;
+    var diff = utils.diff(previousData, data);
+    var geometry = this.el.object3D.geometry;
+    var geometryNeedsUpdate = !(Object.keys(diff).length === 1 && 'translate' in diff);
+    var translateNeedsUpdate = !utils.deepEqual(data.translate, currentTranslate);
 
-      if (geometryNeedsUpdate) {
-        geometry = this.el.object3D.geometry = getGeometry(this.data, this.defaults);
-      }
-      if (translateNeedsUpdate) {
-        applyTranslate(geometry, data.translate, currentTranslate);
-      }
+    if (geometryNeedsUpdate) {
+      geometry = this.el.object3D.geometry = getGeometry(this.data, this.schema);
+    }
+    if (translateNeedsUpdate) {
+      applyTranslate(geometry, data.translate, currentTranslate);
     }
   },
 
   /**
    * Removes geometry on remove (callback).
    */
-  remove: {
-    value: function () {
-      this.el.object3D.geometry = new THREE.Geometry();
-    }
+  remove: function () {
+    this.el.object3D.geometry = new THREE.Geometry();
   }
 });
 
@@ -111,10 +109,10 @@ module.exports.Component = registerComponent('geometry', {
  * Creates a three.js geometry.
  *
  * @param {object} data
- * @param {object} defaults
+ * @param {object} schema
  * @returns {object} geometry
  */
-function getGeometry (data, defaults) {
+function getGeometry (data, schema) {
   var radiusBottom;
   var radiusTop;
 
@@ -130,7 +128,7 @@ function getGeometry (data, defaults) {
       // Shortcut for specifying both top and bottom radius.
       radiusTop = data.radiusTop;
       radiusBottom = data.radiusBottom;
-      if (data.radius !== defaults.radius) {
+      if (data.radius !== schema.radius.default) {
         radiusTop = data.radius;
         radiusBottom = data.radius;
       }
