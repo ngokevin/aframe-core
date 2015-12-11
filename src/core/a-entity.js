@@ -38,6 +38,7 @@ var proto = {
 
   createdCallback: {
     value: function () {
+      this.isEntity = true;
       this.states = [];
       this.components = {};
       this.object3D = new THREE.Mesh();
@@ -52,8 +53,23 @@ var proto = {
 
   attachedCallback: {
     value: function () {
+      var self = this;
+      var children = this.getChildEntities();
+      var childrenLoaded = [];
+
+      children.forEach(function (child, i) {
+        childrenLoaded.push(new Promise(function (resolve) {
+          child.addEventListener('loaded', function () {
+            resolve();
+          });
+        }));
+      });
+
       this.addToParent();
-      this.load();
+
+      Promise.all(childrenLoaded).then(function () {
+        self.load();
+      });
     }
   },
 
@@ -78,6 +94,25 @@ var proto = {
         return;
       }
       this.updateComponent(attr, attrValue);
+    }
+  },
+
+  /**
+   * @returns {array} Direct children that are entities.
+   */
+  getChildEntities: {
+    value: function () {
+      var children = this.children;
+      var childEntities = [];
+
+      for (var i = 0; i < this.children.length; i++) {
+        var child = children[i];
+        if (child.isEntity) {
+          childEntities.push(child);
+        }
+      }
+
+      return childEntities;
     }
   },
 
