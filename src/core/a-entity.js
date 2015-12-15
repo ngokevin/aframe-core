@@ -11,6 +11,8 @@ var THREE = require('../../lib/three');
 var log = debug('core:a-entity');
 var error = debug('core:a-entity:error');
 
+var AEntity;
+
 /**
  * Entity element definition.
  * Entities represent all elements that are part of the scene, and always have
@@ -26,7 +28,7 @@ var error = debug('core:a-entity:error');
  * @member {object} object3D - three.js object.
  * @member {array} states
  */
-var proto = {
+var proto = Object.create(ANode.prototype, {
   defaults: {
     value: {
       position: '',
@@ -81,25 +83,6 @@ var proto = {
         return;
       }
       this.updateComponent(attr, attrValue);
-    }
-  },
-
-  /**
-   * @returns {array} Direct children that are entities.
-   */
-  getChildEntities: {
-    value: function () {
-      var children = this.children;
-      var childEntities = [];
-
-      for (var i = 0; i < this.children.length; i++) {
-        var child = children[i];
-        if (child.tagName === this.tagName) {
-          childEntities.push(child);
-        }
-      }
-
-      return childEntities;
     }
   },
 
@@ -197,6 +180,25 @@ var proto = {
   remove: {
     value: function (el) {
       this.object3D.remove(el.object3D);
+    }
+  },
+
+  /**
+   * @returns {array} Direct children that are entities.
+   */
+  getChildEntities: {
+    value: function () {
+      var children = this.children;
+      var childEntities = [];
+
+      for (var i = 0; i < this.children.length; i++) {
+        var child = children[i];
+        if (child instanceof AEntity) {
+          childEntities.push(child);
+        }
+      }
+
+      return childEntities;
     }
   },
 
@@ -490,8 +492,9 @@ var proto = {
       return is;
     }
   }
-};
-
-module.exports = registerElement('a-entity', {
-  prototype: Object.create(ANode.prototype, proto)
 });
+
+AEntity = registerElement('a-entity', {
+  prototype: proto
+});
+module.exports = AEntity;
