@@ -31,7 +31,6 @@ var isMobile = utils.isMobile();
  * @member {bool} defaultCameraEnabled - false if user has not added camera.
  * @member {bool} defaultLightsEnabled - false if user has not added lights.
  * @member {Element} enterVREl
- * @member {array} everythingLoaded - promises before kicking off.
  * @member {bool} insideIframe
  * @member {bool} insideLoader
  * @member {bool} isScene - Differentiates this as a scene entity as opposed
@@ -53,7 +52,6 @@ var AScene = module.exports = registerElement('a-scene', {
         this.defaultCameraEnabled = true;
         this.defaultLightsEnabled = true;
         this.enterVREl = null;
-        this.everythingLoaded = [];
         this.insideIframe = window.top !== window.self;
         this.insideLoader = false;
         this.isScene = true;
@@ -214,18 +212,6 @@ var AScene = module.exports = registerElement('a-scene', {
         if (this.enterVREl) {
           this.enterVREl.classList.add(HIDDEN_CLASS);
         }
-      }
-    },
-
-    /**
-     * Trigger ANode `loaded`.
-     */
-    load: {
-      value: function () {
-        if (this.hasLoaded) { return; }
-        AEntity.prototype.load.call(this, function (el) {
-          return el.isNode;
-        });
       }
     },
 
@@ -553,7 +539,7 @@ e    * @param {object} el - element holding the camera component.
           this.emit('renderstart');
         });
 
-        this.load();
+        AEntity.prototype.load.call(this);
       }
     },
 
