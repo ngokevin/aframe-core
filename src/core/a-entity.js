@@ -11,6 +11,8 @@ var THREE = require('../../lib/three');
 var log = debug('core:a-entity');
 var error = debug('core:a-entity:error');
 
+var AEntity;
+
 /**
  * Entity element definition.
  * Entities represent all elements that are part of the scene, and always have
@@ -26,7 +28,7 @@ var error = debug('core:a-entity:error');
  * @member {object} object3D - three.js object.
  * @member {array} states
  */
-var proto = {
+var proto = Object.create(ANode.prototype, {
   defaults: {
     value: {
       position: '',
@@ -38,6 +40,7 @@ var proto = {
 
   createdCallback: {
     value: function () {
+      this.isEntity = true;
       this.states = [];
       this.components = {};
       this.object3D = new THREE.Mesh();
@@ -53,7 +56,9 @@ var proto = {
   attachedCallback: {
     value: function () {
       this.addToParent();
-      this.load();
+      if (!this.isScene) {
+        this.load();
+      }
     }
   },
 
@@ -156,16 +161,18 @@ var proto = {
 
   load: {
     value: function () {
-      // To prevent calling load more than once
       if (this.hasLoaded) { return; }
-      // Handle to the associated DOM element
       this.object3D.el = this;
-      // It attaches itself to the threejs parent object3D
+
+      // Attach to parent object3D.
       this.addToParent();
-      // Components initialization
-      this.updateComponents();
-      // Call the parent class
-      ANode.prototype.load.call(this);
+
+      if (this.isScene) {
+        ANode.prototype.load.call(this, this.updateComponents.bind(this));
+      } else {
+        ANode.prototype.load.call(this, this.updateComponents.bind(this),
+                                  function (el) { return el.isEntity; });
+      }
     },
     writable: window.debug
   },
@@ -173,6 +180,25 @@ var proto = {
   remove: {
     value: function (el) {
       this.object3D.remove(el.object3D);
+    }
+  },
+
+  /**
+   * @returns {array} Direct children that are entities.
+   */
+  getChildEntities: {
+    value: function () {
+      var children = this.children;
+      var childEntities = [];
+
+      for (var i = 0; i < this.children.length; i++) {
+        var child = children[i];
+        if (child instanceof AEntity) {
+          childEntities.push(child);
+        }
+      }
+
+      return childEntities;
     }
   },
 
@@ -298,7 +324,6 @@ var proto = {
           newData = component.parse(newData);
         }
         // Component already initialized. Update component.
-        // TODO: update component attribute more granularly.
         component.updateAttributes(newData);
         return;
       }
@@ -342,9 +367,10 @@ var proto = {
     value: function (attr, oldVal, newVal) {
       var component = components[attr];
       oldVal = oldVal || this.getAttribute(attr);
-      // When creating objects programatically and setting attributes, the object is not part
-      // of the scene until is inserted into the DOM.
-      if (!this.hasLoaded) { return; }
+      // When creating entities programatically and setting attributes, it is not part
+      // of the scene until it is inserted into the DOM. This does not apply to scenes as
+      // scenes depend on its child entities to load.
+      if (!this.hasLoaded && !this.isScene) { return; }
       if (attr === 'mixin') {
         this.updateStateMixins(newVal, oldVal);
         this.updateComponents();
@@ -466,8 +492,9 @@ var proto = {
       return is;
     }
   }
-};
-
-module.exports = registerElement('a-entity', {
-  prototype: Object.create(ANode.prototype, proto)
 });
+
+AEntity = registerElement('a-entity', {
+  prototype: proto
+});
+module.exports = AEntity;
