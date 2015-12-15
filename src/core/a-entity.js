@@ -54,7 +54,9 @@ var proto = {
   attachedCallback: {
     value: function () {
       this.addToParent();
-      this.load();
+      if (!this.isScene) {
+        this.load();
+      }
     }
   },
 
