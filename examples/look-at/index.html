@@ -2,52 +2,70 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Look-At</title>
-    <meta name="description" content="Look-At - A-Frame Core">
+    <title>Look At</title>
+    <meta name="description" content="Look At - A-Frame">
     <script src="../../dist/aframe-core.js"></script>
   </head>
   <body>
-    <a-assets>
-      <img id="floor" src="../_images/textures/marble.jpg">
-      <img id="follower-img" src="../_images/pano/tintamarre.jpg">
-      <a-mixin id="follower" geometry="primitive: box; width: 3; height: 3; depth: .1;"
-               material="src: #follower-img">
-      </a-mixin>
-    </a-assets>
-
-    <a-scene stats="true">
-      <!-- Camera. -->
-      <a-entity position="0 1.8 4">
+    <a-asset>
+      <a-mixin id="cube"
+               geometry="primitive: box; width: 1; height: 1; depth: 1"
+               material="color: #4CC3D9"><a-mixin>
+      <a-mixin id="cylinder"
+               material="color: #7BC8A4"
+               geometry="primitive: cylinder; height: 2; radius: 0.2"></a-mixin>
+      <a-mixin id="look-at-target" look-at="#target"></a-mixin>
+      <a-mixin id="look-at-camera" look-at="#camera"></a-mixin>
+      <a-mixin id="sphere"
+               geometry="primitive: sphere; radius: 0.5"
+               material="color: #404040"></a-mixin>
+      <a-mixin id="big-yellow"
+                geometry="width: 2; height: 2; depth: 2"
+                material="color: #FFC65D"></a-mixin>
+      <a-mixin id="medium-gray"
+                geometry="width: 1; height: 2; depth: 0.25"
+                material="color: #999"></a-mixin>
+      <a-mixin id="medium-violet"
+                geometry="width: 2; height: 1; depth: 0.25"
+                material="color: #93648D"></a-mixin>
+      <a-mixin id="medium-orange"
+                geometry="width: 0.5; height: 1; depth: 1"
+                material="color: #F16745"></a-mixin>
+      <a-mixin id="sphere-animation"
+               attribute="position"
+               from="-12 6 -12" to="8 3 -2"
+               dur="1500"
+               repeat="indefinite"
+               fill="forwards"
+               direction="alternate"></a-mixin>
+      <a-mixin id="sky"
+               geometry="primitive: sphere; radius: 5000"
+               material="color: #ECECEC"
+               scale="-1 1 1"></a-mixin>
+    </a-asset>
+    <a-scene>
+      <a-entity position="0 2.2 4">
         <a-entity id="camera" camera look-controls wasd-controls></a-entity>
       </a-entity>
 
-      <!-- Light. -->
-      <a-entity light="type: ambient; color: #BBB"></a-entity>
-
-      <!-- Floor. -->
-      <a-entity geometry="primitive: cylinder; height: .2; radius: 15;"
-                material="src: #floor; metalness: .2; repeat: 50 20; roughness: .1"
-                position="0 0 0"></a-entity>
-
-      <!-- Skysphere. -->
-      <a-entity geometry="primitive: sphere; radius: 100"
-                material="color: #333; shader: flat" scale="1 1 -1">
+      <!-- A target entity -->
+      <a-entity id="target" mixin="sphere">
+        <a-animation mixin="sphere-animation"></a-animation>
       </a-entity>
 
-      <!-- Moving object. -->
-      <a-entity position="0 2 0">
-        <a-entity id="squirrel" geometry="primitive: sphere; radius: .2"
-                                light="type: point; color: #555"
-                                material="color: #FFF; shader: flat"
-                                position="20 0 0">
-        </a-entity>
-        <a-animation attribute="rotation" direction="alternate" dur="5000"
-                     easing="ease-in-out" fill="forwards" repeat="indefinite"
-                     to="0 360 180"></a-animation>
-      </a-entity>
+      <!-- Entities look at the target -->
+      <a-entity mixin="cube look-at-target" position="-4 0 -2"></a-entity>
+      <a-entity mixin="cylinder look-at-target" position="0 0 -2"></a-entity>
+      <a-entity mixin="cube medium-orange look-at-target" position="4 0 -2"></a-entity>
+      <a-entity mixin="cylinder look-at-target" position="-4 0 1"></a-entity>
+      <a-entity mixin="cube medium-violet look-at-target" position="0 0 1"></a-entity>
+      <a-entity mixin="cube medium-gray look-at-target" position="4 0 1"></a-entity>
 
-      <a-entity mixin="follower" look-at="#squirrel" position="0 2 0"></a-entity>
-      <a-entity mixin="follower" look-at="#camera" position="0 5 0"></a-entity>
+      <!-- This entity looks at the camera. Use WASD controls to test it -->
+      <a-entity mixin="cube big-yellow look-at-camera" position="-6 2.5 -2"></a-entity>
+
+      <a-entity mixin="sky"></a-sky>
+
     </a-scene>
   </body>
 </html>
