@@ -274,7 +274,7 @@ var proto = {
    * When initializing, we set the component on `this.components`.
    *
    * @param {string} name - Component name.
-   * @param {object} newData - The new attributes assigned to the component
+   * @param {object} newData - The new properties assigned to the component
    */
   updateComponent: {
     value: function (name, newData) {
@@ -298,8 +298,8 @@ var proto = {
           newData = component.parse(newData);
         }
         // Component already initialized. Update component.
-        // TODO: update component attribute more granularly.
-        component.updateAttributes(newData);
+        // TODO: update component property more granularly.
+        component.updateProperties(newData);
         return;
       }
       // Component not yet initialized. Initialize component.
@@ -308,21 +308,21 @@ var proto = {
   },
 
   /**
-   * If `attr` is a component name and `componentAttr` is not defined, removeAttribute removes
+   * If `attr` is a component name and `componentProp` is not defined, removeAttribute removes
    * the entire component from the entity.
    *
-   * If `attr` is a component name and `componentAttr` is defined, removeAttribute removes a
-   * single attribute from the component.
+   * If `attr` is a component name and `componentProp` is defined, removeAttribute removes a
+   * single property from the component.
    *
    * @param {string} attr - Attribute name, which could also be a component name.
-   * @param {string} componentAttr - Component attribute name.
+   * @param {string} componentProp - Component property name.
    */
   removeAttribute: {
-    value: function (attr, componentAttr) {
+    value: function (attr, componentProp) {
       var component = components[attr];
       if (component) {
-        if (componentAttr) {
-          this.setAttribute(attr, componentAttr, undefined);
+        if (componentProp) {
+          this.setAttribute(attr, componentProp, undefined);
         } else {
           this.setEntityAttribute(attr, undefined, null);
         }
@@ -368,11 +368,11 @@ var proto = {
    *        a component if the name corresponds to a registered component.
    * @param {string|object} value - If a string, setAttribute will update the attribute or.
    *        component. If an object, the value will be mixed into the component.
-   * @param {string} componentAttrValue - If defined, `value` will act as the attribute
-   *        name and setAttribute will only set a single component attribute.
+   * @param {string} componentPropValue - If defined, `value` will act as the property
+   *        name and setAttribute will only set a single component property.
    */
   setAttribute: {
-    value: function (attr, value, componentAttrValue) {
+    value: function (attr, value, componentPropValue) {
       var self = this;
       var component = components[attr];
       var partialComponentData;
@@ -380,10 +380,10 @@ var proto = {
       var valueStr = value;
       var oldValue;
       if (component) {
-        if (typeof value === 'string' && componentAttrValue !== undefined) {
-          // Update currently-defined component data with the new attribute value.
+        if (typeof value === 'string' && componentPropValue !== undefined) {
+          // Update currently-defined component data with the new property value.
           partialComponentData = self.getAttribute(attr) || {};
-          partialComponentData[value] = componentAttrValue;
+          partialComponentData[value] = componentPropValue;
           value = partialComponentData;
         }
         valueStr = component.stringify(value);
