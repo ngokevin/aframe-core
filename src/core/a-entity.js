@@ -10,6 +10,8 @@ var log = debug('core:a-entity');
 var error = debug('core:a-entity:error');
 var registerElement = re.registerElement;
 
+var AEntity;
+
 /**
  * Entity element definition.
  * Entities represent all elements that are part of the scene, and always have
@@ -25,7 +27,7 @@ var registerElement = re.registerElement;
  * @member {object} object3D - three.js object.
  * @member {array} states
  */
-var proto = {
+var proto = Object.create(ANode.prototype, {
   defaults: {
     value: {
       position: '',
@@ -37,6 +39,7 @@ var proto = {
 
   createdCallback: {
     value: function () {
+      this.isEntity = true;
       this.states = [];
       this.components = {};
       this.object3D = new THREE.Mesh();
@@ -52,7 +55,9 @@ var proto = {
   attachedCallback: {
     value: function () {
       this.addToParent();
-      this.load();
+      if (!this.isScene) {
+        this.load();
+      }
     }
   },
 
@@ -155,16 +160,18 @@ var proto = {
 
   load: {
     value: function () {
-      // To prevent calling load more than once
       if (this.hasLoaded) { return; }
-      // Handle to the associated DOM element
       this.object3D.el = this;
-      // It attaches itself to the threejs parent object3D
+
+      // Attach to parent object3D.
       this.addToParent();
-      // Components initialization
-      this.updateComponents();
-      // Call the parent class
-      ANode.prototype.load.call(this);
+
+      if (this.isScene) {
+        ANode.prototype.load.call(this, this.updateComponents.bind(this));
+      } else {
+        ANode.prototype.load.call(this, this.updateComponents.bind(this),
+                                  function (el) { return el.isEntity; });
+      }
     },
     writable: window.debug
   },
@@ -172,6 +179,25 @@ var proto = {
   remove: {
     value: function (el) {
       this.object3D.remove(el.object3D);
+    }
+  },
+
+  /**
+   * @returns {array} Direct children that are entities.
+   */
+  getChildEntities: {
+    value: function () {
+      var children = this.children;
+      var childEntities = [];
+
+      for (var i = 0; i < this.children.length; i++) {
+        var child = children[i];
+        if (child instanceof AEntity) {
+          childEntities.push(child);
+        }
+      }
+
+      return childEntities;
     }
   },
 
@@ -273,7 +299,7 @@ var proto = {
    * When initializing, we set the component on `this.components`.
    *
    * @param {string} name - Component name.
-   * @param {object} newData - The new attributes assigned to the component
+   * @param {object} newData - The new properties assigned to the component
    */
   updateComponent: {
     value: function (name, newData) {
@@ -297,8 +323,7 @@ var proto = {
           newData = component.parse(newData);
         }
         // Component already initialized. Update component.
-        // TODO: update component attribute more granularly.
-        component.updateAttributes(newData);
+        component.updateProperties(newData);
         return;
       }
       // Component not yet initialized. Initialize component.
@@ -307,21 +332,21 @@ var proto = {
   },
 
   /**
-   * If `attr` is a component name and `componentAttr` is not defined, removeAttribute removes
+   * If `attr` is a component name and `componentProp` is not defined, removeAttribute removes
    * the entire component from the entity.
    *
-   * If `attr` is a component name and `componentAttr` is defined, removeAttribute removes a
-   * single attribute from the component.
+   * If `attr` is a component name and `componentProp` is defined, removeAttribute removes a
+   * single property from the component.
    *
    * @param {string} attr - Attribute name, which could also be a component name.
-   * @param {string} componentAttr - Component attribute name.
+   * @param {string} componentProp - Component property name.
    */
   removeAttribute: {
-    value: function (attr, componentAttr) {
+    value: function (attr, componentProp) {
       var component = components[attr];
       if (component) {
-        if (componentAttr) {
-          this.setAttribute(attr, componentAttr, undefined);
+        if (componentProp) {
+          this.setAttribute(attr, componentProp, undefined);
         } else {
           this.setEntityAttribute(attr, undefined, null);
         }
@@ -341,9 +366,10 @@ var proto = {
     value: function (attr, oldVal, newVal) {
       var component = components[attr];
       oldVal = oldVal || this.getAttribute(attr);
-      // When creating objects programatically and setting attributes, the object is not part
-      // of the scene until is inserted into the DOM.
-      if (!this.hasLoaded) { return; }
+      // When creating entities programatically and setting attributes, it is not part
+      // of the scene until it is inserted into the DOM. This does not apply to scenes as
+      // scenes depend on its child entities to load.
+      if (!this.hasLoaded && !this.isScene) { return; }
       if (attr === 'mixin') {
         this.updateStateMixins(newVal, oldVal);
         this.updateComponents();
@@ -367,11 +393,11 @@ var proto = {
    *        a component if the name corresponds to a registered component.
    * @param {string|object} value - If a string, setAttribute will update the attribute or.
    *        component. If an object, the value will be mixed into the component.
-   * @param {string} componentAttrValue - If defined, `value` will act as the attribute
-   *        name and setAttribute will only set a single component attribute.
+   * @param {string} componentPropValue - If defined, `value` will act as the property
+   *        name and setAttribute will only set a single component property.
    */
   setAttribute: {
-    value: function (attr, value, componentAttrValue) {
+    value: function (attr, value, componentPropValue) {
       var self = this;
       var component = components[attr];
       var partialComponentData;
@@ -379,10 +405,10 @@ var proto = {
       var valueStr = value;
       var oldValue;
       if (component) {
-        if (typeof value === 'string' && componentAttrValue !== undefined) {
-          // Update currently-defined component data with the new attribute value.
+        if (typeof value === 'string' && componentPropValue !== undefined) {
+          // Update currently-defined component data with the new property value.
           partialComponentData = self.getAttribute(attr) || {};
-          partialComponentData[value] = componentAttrValue;
+          partialComponentData[value] = componentPropValue;
           value = partialComponentData;
         }
         valueStr = component.stringify(value);
@@ -465,8 +491,9 @@ var proto = {
       return is;
     }
   }
-};
-
-module.exports = registerElement('a-entity', {
-  prototype: Object.create(ANode.prototype, proto)
 });
+
+AEntity = registerElement('a-entity', {
+  prototype: proto
+});
+module.exports = AEntity;
