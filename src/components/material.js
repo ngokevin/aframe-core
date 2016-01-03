@@ -174,7 +174,7 @@ module.exports.Component = registerComponent('material', {
     } else {
       // Material is first to load this texture. Load and resolve texture.
       texturePromises[envMap] = new Promise(function (resolve) {
-        srcLoader.validateCubemapSrc(envMap, function loadEnvMap(urls) {
+        srcLoader.validateCubemapSrc(envMap, function loadEnvMap (urls) {
           CubeLoader.load(urls, function (cube) {
             // Texture loaded.
             self.isLoadingEnvMap = false;
@@ -221,8 +221,8 @@ module.exports.Component = registerComponent('material', {
       material.map = null;
       material.needsUpdate = true;
     }
-    function loadImage(src) { loadImageTexture(material, src, data.repeat, loadedStereoscopicTexture); }
-    function loadVideo(src) { loadVideoTexture(material, src, data.width, data.height, loadedStereoscopicTexture); }
+    function loadImage (src) { loadImageTexture(material, src, data.repeat, loadedStereoscopicTexture); }
+    function loadVideo (src) { loadVideoTexture(material, src, data.width, data.height, loadedStereoscopicTexture); }
   }
 });
 
@@ -234,7 +234,7 @@ module.exports.Component = registerComponent('material', {
  * @param {string} repeat - X and Y value for size of texture repeating (in UV units).
  * @param {function} loadedStereoscopicTexture - Stereoscopic texture loaded callback.
  */
-function loadImageTexture(material, src, repeat, loadedStereoscopicTexture) {
+function loadImageTexture (material, src, repeat, loadedStereoscopicTexture) {
   var isEl = typeof src !== 'string';
 
   var onLoad = createTexture;
@@ -250,7 +250,7 @@ function loadImageTexture(material, src, repeat, loadedStereoscopicTexture) {
     TextureLoader.load(src, onLoad, onProgress, onError);
   }
 
-  function createTexture(texture) {
+  function createTexture (texture) {
     if (!(texture instanceof THREE.Texture)) { texture = new THREE.Texture(texture); }
     var repeatXY;
     if (repeat) {
@@ -278,9 +278,9 @@ function loadImageTexture(material, src, repeat, loadedStereoscopicTexture) {
  * @param {number} height - Height of the video.
  * @returns {Element} Video element.
  */
-function createVideoEl(material, src, width, height) {
+function createVideoEl (material, src, width, height) {
   var el = material.videoEl || document.createElement('video');
-  function onError() {
+  function onError () {
     warn('The URL "$s" is not a valid image or video', src);
   }
   el.width = width;
@@ -306,7 +306,7 @@ function createVideoEl(material, src, width, height) {
  * @param {number} height - Height of the video.
  * @param {function} loadedStereoscopicTexture - Stereoscopic texture loaded callback.
 */
-function loadVideoTexture(material, src, height, width, loadedStereoscopicTexture) {
+function loadVideoTexture (material, src, height, width, loadedStereoscopicTexture) {
   // three.js video texture loader requires a <video>.
   var videoEl = typeof src !== 'string' ? fixVideoAttributes(src) : createVideoEl(material, src, height, width);
   var texture = new THREE.VideoTexture(videoEl);
@@ -325,7 +325,7 @@ function loadVideoTexture(material, src, height, width, loadedStereoscopicTextur
  * @param {Element} videoEl - Video element.
  * @returns {Element} Video element with the correct properties updated.
  */
-function fixVideoAttributes(videoEl) {
+function fixVideoAttributes (videoEl) {
   // The `<video>` element treats `loop` and `muted` as boolean attributes, but
   // of course does not with `autoplay`, `controls`, `preload` (and `crossorigin`).
   // If we get passed a `<video autoplay="false">`, let's assume the dev wanted
@@ -344,7 +344,7 @@ function fixVideoAttributes(videoEl) {
  * @param {object} data - Material data.
  * @returns {object} data - Processed material data.
  */
-function getMaterialData(data) {
+function getMaterialData (data) {
   var materialData = {
     color: data.color,
     side: data.side,
@@ -365,7 +365,7 @@ function getMaterialData(data) {
  * @param {object} data - Material data.
  * @returns {object} Processed material data.
  */
-function processMaterialData(data) {
+function processMaterialData (data) {
   if ('color' in data) {
     data.color = new THREE.Color(data.color);
   }
@@ -384,7 +384,7 @@ function processMaterialData(data) {
  * @param {object} Material component data.
  * @returns {string} Material type (as three.js constructor name)
  */
-function getMaterialType(data) {
+function getMaterialType (data) {
   return data.shader === 'flat' ? MATERIAL_TYPE_BASIC : MATERIAL_TYPE_STANDARD;
 }
 
@@ -395,7 +395,7 @@ function getMaterialType(data) {
  * @param {string} [side=front] - `front`, `back`, or `double`.
  * @returns {number} THREE.FrontSide, THREE.BackSide, or THREE.DoubleSide.
  */
-function getSide(side) {
+function getSide (side) {
   switch (side) {
     case 'back': {
       return THREE.BackSide;
