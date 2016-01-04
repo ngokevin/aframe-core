@@ -136,7 +136,7 @@ var AScene = module.exports = registerElement('a-scene', {
     showOrientationModal: {
       value: function () {
         if (!utils.isIOS()) { return; }
-        if (!utils.isLandscape() && this.renderer === this.stereoscopicRenderer) {
+        if (!utils.isLandscape() && this.renderer === this.stereoRenderer) {
           this.orientationModal.classList.remove(HIDDEN_CLASS);
         } else {
           this.orientationModal.classList.add(HIDDEN_CLASS);
