@@ -37,11 +37,29 @@ function validateSrc (src, isImageCb, isVideoCb) {
   if (!textureEl) { return; }
   isImage = textureEl && textureEl.tagName === 'IMG';
   isVideo = textureEl && textureEl.tagName === 'VIDEO';
-  if (isImage) { return isImageCb(textureEl); }
-  if (isVideo) { return isVideoCb(textureEl); }
-
-  // src is a valid selector but doesn't match with a <img> or <video> element.
-  warn('"%s" does not point to a valid <img> or <video> element', src);
+  if (isImage) {
+    if (textureEl.complete) {
+      return isImageCb(textureEl);
+    } else {
+      textureEl.onload = function () {
+        textureEl.onload = null;
+        return isImageCb(textureEl);
+      };
+    }
+  } else if (isVideo) {
+    if (textureEl.videoWidth) {
+      return isVideoCb(textureEl);
+    } else {
+      textureEl.onloadedmetadata = function () {
+        textureEl.onloadedmetadata = null;
+        return isVideoCb(textureEl);
+      };
+    }
+  } else {
+    // src is a valid selector but doesn't match with a <img> or <video> element.
+    warn('"%s" does not point to a valid <img> or <video> element', src);
+    return;
+  }
 }
 
 /**

@@ -1,6 +1,7 @@
 /* global Promise */
 var debug = require('../utils/debug');
 var diff = require('../utils').diff;
+var isMobile = require('../utils').isMobile;
 var registerComponent = require('../core/component').registerComponent;
 var srcLoader = require('../utils/src-loader');
 var THREE = require('../../lib/three');
@@ -13,6 +14,16 @@ var warn = debug('components:material:warn');
 
 var MATERIAL_TYPE_BASIC = 'MeshBasicMaterial';
 var MATERIAL_TYPE_STANDARD = 'MeshStandardMaterial';
+
+var stereoscopicOffsets = {
+  OU: { l: 0, r: 0.5 },
+  UO: { l: 0.5, r: 0 },
+  LR: { l: 0, r: 0.5 },
+  RL: { l: 0.5, r: 0 }
+};
+var stereoscopicOffset = null;
+var stereoscopicDirections = { OU: 'y', UO: 'y', LR: 'x', RL: 'x' };
+var stereoscopicDirection = '';
 
 /**
  * Material component.
@@ -36,6 +47,12 @@ var MATERIAL_TYPE_STANDARD = 'MeshStandardMaterial';
  *         MeshBasicMaterial.
  * @param {string} src - To load a texture. takes a selector to an img/video
  *         element or a direct url().
+ * @param {string} msrc - src for mobile.
+ * @param {string} stereoscopicType - Stereoscopic texture type.
+ *         'OU': Left eye:Over  / Right eye:Under.
+ *         'UO': Left eye:Under / Right eye:Over.
+ *         'LR': Left eye:Left  / Right eye:Right.
+ *         'RL': Left eye:Right / Right eye:Left.
  * @param {boolean} transparent - Whether to render transparent the alpha
  *         channel of a texture (e.g., .png).
  * @param {number} width - Width to render texture.
@@ -53,6 +70,8 @@ module.exports.Component = registerComponent('material', {
     shader: { default: 'standard', oneOf: ['flat', 'standard'] },
     side: { default: 'front', oneOf: ['front', 'back', 'double'] },
     src: { default: '' },
+    msrc: { default: '' },
+    stereoscopicType: { default: '' },
     transparent: { default: false },
     width: { default: 640 }
   },
@@ -76,7 +95,7 @@ module.exports.Component = registerComponent('material', {
     var data = this.data;
     var material;
     var materialType = getMaterialType(data);
-    var src = data.src;
+    var src = isMobile() && data.msrc ? data.msrc : data.src;
 
     if (!oldData || getMaterialType(oldData) !== materialType) {
       material = this.createMaterial(getMaterialData(data), materialType);
@@ -178,7 +197,23 @@ module.exports.Component = registerComponent('material', {
   updateTexture: function (src) {
     var data = this.data;
     var material = this.material;
+    var stereoscopicType = (data.stereoscopicType || '').toUpperCase();
+    var loadedStereoscopicTexture = function () {
+      var texture = this.material.map;
+      var sceneEl = this.el.sceneEl;
+      texture.stereoscopicDirection = stereoscopicDirection;
+      texture.stereoscopicOffset = stereoscopicOffset;
+      texture.repeat[stereoscopicDirection] = 0.5;
+      if (texture) sceneEl.addStereoscopicTexture(texture);
+    }.bind(this);
+    if (material.map) this.el.sceneEl.removeStereoscopicTexture(material.map);
     if (src) {
+      if (stereoscopicType) {
+        data.repeat = ''; // ignore repeat.
+        stereoscopicType = /OU|UO|LR|RL/.test(stereoscopicType) ? stereoscopicType : 'OU'; // Default Youtube type (='OU').
+        stereoscopicOffset = stereoscopicOffsets[stereoscopicType];
+        stereoscopicDirection = stereoscopicDirections[stereoscopicType];
+      }
       if (src !== this.textureSrc) {
         // Texture added or changed.
         this.textureSrc = src;
@@ -189,8 +224,8 @@ module.exports.Component = registerComponent('material', {
       material.map = null;
       material.needsUpdate = true;
     }
-    function loadImage (src) { loadImageTexture(material, src, data.repeat); }
-    function loadVideo (src) { loadVideoTexture(material, src, data.width, data.height); }
+    function loadImage (src) { loadImageTexture(material, src, data.repeat, loadedStereoscopicTexture); }
+    function loadVideo (src) { loadVideoTexture(material, src, data.width, data.height, loadedStereoscopicTexture); }
   }
 });
 
@@ -200,8 +235,9 @@ module.exports.Component = registerComponent('material', {
  * @param {object} material - three.js material.
  * @param {string|object} src - An <img> element or url to an image file.
  * @param {string} repeat - X and Y value for size of texture repeating (in UV units).
+ * @param {function} loadedStereoscopicTexture - Stereoscopic texture loaded callback.
  */
-function loadImageTexture (material, src, repeat) {
+function loadImageTexture (material, src, repeat, loadedStereoscopicTexture) {
   var isEl = typeof src !== 'string';
 
   var onLoad = createTexture;
@@ -232,6 +268,7 @@ function loadImageTexture (material, src, repeat) {
     material.map = texture;
     texture.needsUpdate = true;
     material.needsUpdate = true;
+    if (stereoscopicDirection && loadedStereoscopicTexture) loadedStereoscopicTexture();
   }
 }
 
@@ -270,15 +307,24 @@ function createVideoEl (material, src, width, height) {
  * @param {string} src - Url to a video file.
  * @param {number} width - Width of the video.
  * @param {number} height - Height of the video.
+ * @param {function} loadedStereoscopicTexture - Stereoscopic texture loaded callback.
 */
-function loadVideoTexture (material, src, height, width) {
+function loadVideoTexture (material, src, height, width, loadedStereoscopicTexture) {
   // three.js video texture loader requires a <video>.
   var videoEl = typeof src !== 'string' ? fixVideoAttributes(src) : createVideoEl(material, src, height, width);
-  var texture = new THREE.VideoTexture(videoEl);
-  texture.minFilter = THREE.LinearFilter;
-  texture.needsUpdate = true;
-  material.map = texture;
-  material.needsUpdate = true;
+  var loaded = function () {
+    var texture = new THREE.VideoTexture(videoEl);
+    texture.minFilter = THREE.LinearFilter;
+    texture.needsUpdate = true;
+    material.map = texture;
+    material.needsUpdate = true;
+    if (stereoscopicDirection && loadedStereoscopicTexture) loadedStereoscopicTexture();
+  };
+  if (videoEl.videoWidth) {
+    loaded();
+  } else {
+    videoEl.onloadedmetadata = loaded;
+  }
 }
 
 /**
