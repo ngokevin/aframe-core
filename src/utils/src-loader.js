@@ -50,8 +50,8 @@ function validateSrc (src, isImageCb, isVideoCb) {
     if (textureEl.videoWidth) {
       return isVideoCb(textureEl);
     } else {
-      textureEl.onloadedmetadata = function () {
-        textureEl.onloadedmetadata = null;
+      textureEl.onloadeddata = function () {
+        textureEl.onloadeddata = null;
         return isVideoCb(textureEl);
       };
     }
