@@ -27,6 +27,7 @@ var isMobile = utils.isMobile();
  * @member {number} animationFrameID
  * @member {array} behaviors - Component instances that have registered themselves to be
            updated on every tick.
+ * @member {array} stereoscopicTextures - Stereoscopic textures.
  * @member {object} canvas
  * @member {Element} enterVREl
  * @member {bool} insideIframe
@@ -47,6 +48,7 @@ var AScene = module.exports = registerElement('a-scene', {
     createdCallback: {
       value: function () {
         this.behaviors = [];
+        this.stereoscopicTextures = [];
         this.defaultLightsEnabled = true;
         this.enterVREl = null;
         this.insideIframe = window.top !== window.self;
@@ -112,6 +114,16 @@ var AScene = module.exports = registerElement('a-scene', {
     addBehavior: {
       value: function (behavior) {
         this.behaviors.push(behavior);
+      }
+    },
+
+    /**
+     * @param {object} texture - Stereoscopic texture
+     */
+    addStereoscopicTexture: {
+      value: function (texture) {
+        var index = this.stereoscopicTextures.indexOf(texture);
+        if (index === -1) this.stereoscopicTextures.push(texture);
       }
     },
 
@@ -328,6 +340,16 @@ var AScene = module.exports = registerElement('a-scene', {
         var index = behaviors.indexOf(behavior);
         if (index === -1) { return; }
         behaviors.splice(index, 1);
+      }
+    },
+
+    /**
+     * @param {object} texture - Stereoscopic texture.
+     */
+    removeStereoscopicTexture: {
+      value: function (texture) {
+        var index = this.stereoscopicTextures.indexOf(texture);
+        if (index !== -1) this.stereoscopicTextures.splice(index, 1);
       }
     },
 
@@ -555,7 +577,7 @@ var AScene = module.exports = registerElement('a-scene', {
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.sortObjects = false;
         AScene.renderer = renderer;
-        this.stereoRenderer = new THREE.VREffect(renderer);
+        this.stereoRenderer = new THREE.VREffect(renderer, null, this.leftPreprocess.bind(this), this.rightPreprocess.bind(this));
       },
       writable: window.debug
     },
@@ -640,6 +662,7 @@ var AScene = module.exports = registerElement('a-scene', {
      */
     unregisterMaterial: {
       value: function (material) {
+        if (material.map) this.removeStereoscopicTexture(material.map);
         delete this.materials[material.uuid];
       }
     },
@@ -698,6 +721,28 @@ var AScene = module.exports = registerElement('a-scene', {
         if (stats) { stats().update(); }
         this.animationFrameID = window.requestAnimationFrame(
           this.render.bind(this));
+      }
+    },
+
+    /**
+     * Stereo render left preprocess
+     */
+    leftPreprocess: {
+      value: function () {
+        this.stereoscopicTextures.forEach(function (texture) {
+          texture.offset[texture.stereoscopicDirection] = texture.stereoscopicOffset.l;
+        });
+      }
+    },
+
+    /**
+     * Stereo render right preprocess
+     */
+    rightPreprocess: {
+      value: function () {
+        this.stereoscopicTextures.forEach(function (texture) {
+          texture.offset[texture.stereoscopicDirection] = texture.stereoscopicOffset.r;
+        });
       }
     }
   })
