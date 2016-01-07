@@ -587,7 +587,7 @@ var AScene = module.exports = registerElement('a-scene', {
           }
           renderer.orgSetViewport(left, top, width, height);
         };
-        this.stereoRenderer = new THREE.VREffect(renderer, null, this.leftPreprocess.bind(this), this.rightPreprocess.bind(this));
+        this.stereoRenderer = new THREE.VREffect(renderer);
       },
       writable: window.debug
     },
