@@ -10,6 +10,7 @@ module.exports.Component = registerComponent('loader', {
 
   schema: {
     src: { default: '' },
+    mtl: { default: '' },
     format: {
       default: 'obj',
       oneOf: ['obj', 'collada']
@@ -21,6 +22,7 @@ module.exports.Component = registerComponent('loader', {
     var data = this.data;
     var model = this.model;
     var url = parseUrl(data.src);
+    var mtlUrl = parseUrl(data.mtl);
     var format = data.format;
     if (model) { el.object3D.remove(model); }
     if (!url) {
@@ -29,7 +31,7 @@ module.exports.Component = registerComponent('loader', {
     }
     switch (format) {
       case 'obj':
-        this.loadObj(url);
+        this.loadObj(url, mtlUrl);
         break;
       case 'collada':
         this.loadCollada(url);
@@ -39,15 +41,27 @@ module.exports.Component = registerComponent('loader', {
     }
   },
 
-  loadObj: function (url) {
+  loadObj: function (url, mtlUrl) {
     var self = this;
     var el = this.el;
-    var loader = new THREE.OBJLoader();
-    loader.load(url, function (object) {
-      self.model = object;
-      self.applyMaterial();
-      el.object3D.add(object);
-    });
+    var loader;
+    if (mtlUrl) {
+      if (el.components.material) {
+        warn('Material component is ignored when a .MTL is provided');
+      }
+      loader = new THREE.OBJMTLLoader();
+      loader.load(url, mtlUrl, function (object) {
+        self.model = object;
+        el.object3D.add(object);
+      });
+    } else {
+      loader = new THREE.OBJLoader();
+      loader.load(url, function (object) {
+        self.model = object;
+        self.applyMaterial();
+        el.object3D.add(object);
+      });
+    }
   },
 
   applyMaterial: function () {
