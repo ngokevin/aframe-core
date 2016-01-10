@@ -3,7 +3,7 @@
   "version": "0.1.3",
   "homepage": "https://github.com/aframevr/aframe-core",
   "license": "MIT",
-  "main": "src/index.js",
+  "main": "dist/aframe-core.js",
   "dependencies": {
     "browserify-css": "^0.8.2",
     "debug": "^2.2.0",
@@ -54,6 +54,7 @@
     "preghpages": "npm run dist && rimraf gh-pages && mkdirp gh-pages && copyfiles -u .nojekyll dist/**/* lib/**/* examples/**/* style/**/* index.html gh-pages && git checkout dist/ && replace 'build/aframe-core.js' 'dist/aframe-core.min.js' gh-pages/ -r --silent",
     "ghpages": "node ./scripts/gh-pages",
     "gh-pages": "npm run ghpages",
+    "prepublish": "npm run build",
     "release:bump": "npm run dist && git commit -am 'bump dist' && npm version patch --preminor",
     "release:push": "npm login && npm publish && git push --follow-tags",
     "test": "karma start ./tests/karma.conf.js",
