@@ -80,12 +80,18 @@ module.exports.Component = registerComponent('look-at', {
    * Remove follow behavior on remove (callback).
    */
   remove: function () {
-    this.el.sceneEl.removeBehavior(this);
+    if (this.behavior) {
+      this.el.sceneEl.removeBehavior(this.behavior);
+    }
   },
 
   beginTracking: function (targetEl) {
+    var self = this;
     this.target3D = targetEl.object3D;
-    this.el.sceneEl.addBehavior(this);
+    this.behavior = function (t) {
+      self.update();
+    };
+    this.el.sceneEl.addBehavior(this.behavior);
   },
 
   /**
