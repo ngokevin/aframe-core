@@ -1,6 +1,5 @@
 require('../components/camera');
 require('../components/cursor');
-require('../components/fog');
 require('../components/geometry');
 require('../components/light');
 require('../components/loader');
@@ -14,3 +13,7 @@ require('../components/scale');
 require('../components/sound');
 require('../components/visible');
 require('../components/wasd-controls');
+
+require('../components/scene/fog');
+require('../components/scene/vr-mode-ui');
+require('../components/scene/vr-mode');

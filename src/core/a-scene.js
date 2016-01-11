@@ -10,16 +10,11 @@ var Wakelock = require('../../lib/vendor/wakelock/wakelock');
 
 var dummyDolly = new THREE.Object3D();
 var controls = new THREE.VRControls(dummyDolly);
+
 var DEFAULT_CAMERA_ATTR = 'data-aframe-default-camera';
 var DEFAULT_LIGHT_ATTR = 'data-aframe-default-light';
 var HIDDEN_CLASS = 'a-hidden';
 var registerElement = re.registerElement;
-var ENTER_VR_CLASS = 'a-enter-vr';
-var ENTER_VR_NO_HEADSET = 'data-a-enter-vr-no-headset';
-var ENTER_VR_NO_WEBVR = 'data-a-enter-vr-no-webvr';
-var ENTER_VR_BTN_CLASS = 'a-enter-vr-button';
-var ENTER_VR_MODAL_CLASS = 'a-enter-vr-modal';
-var ORIENTATION_MODAL_CLASS = 'a-orientation-modal';
 var isMobile = utils.isMobile();
 
 /**
@@ -45,6 +40,12 @@ var isMobile = utils.isMobile();
  */
 var AScene = module.exports = registerElement('a-scene', {
   prototype: Object.create(AEntity.prototype, {
+    defaultComponents: {
+      value: {
+        'enter-vr': ''
+      }
+    },
+
     createdCallback: {
       value: function () {
         this.defaultLightsEnabled = true;
@@ -91,7 +92,6 @@ var AScene = module.exports = registerElement('a-scene', {
         var resizeCanvas = this.resizeCanvas.bind(this);
         this.setupKeyboardShortcuts();
         this.attachFullscreenListeners();
-        this.attachOrientationListeners();
         // For Chrome (https://github.com/aframevr/aframe-core/issues/321).
         window.addEventListener('load', resizeCanvas);
       }
@@ -125,23 +125,6 @@ var AScene = module.exports = registerElement('a-scene', {
     addBehavior: {
       value: function (behavior) {
         this.behaviors.push(behavior);
-      }
-    },
-
-    attachOrientationListeners: {
-      value: function (e) {
-        window.addEventListener('orientationchange', this.showOrientationModal.bind(this));
-      }
-    },
-
-    showOrientationModal: {
-      value: function () {
-        if (!utils.isIOS()) { return; }
-        if (!utils.isLandscape() && this.renderer === this.stereoRenderer) {
-          this.orientationModal.classList.remove(HIDDEN_CLASS);
-        } else {
-          this.orientationModal.classList.add(HIDDEN_CLASS);
-        }
       }
     },
 
@@ -204,40 +187,6 @@ var AScene = module.exports = registerElement('a-scene', {
             }
           }
         });
-      }
-    },
-
-    /**
-     * Enters VR when ?mode=vr is specified in the querystring.
-     */
-    checkUrlParameters: {
-      value: function () {
-        var mode = utils.getUrlParameter('mode');
-        if (mode === 'vr') {
-          this.enterVR();
-        }
-
-        var ui = utils.getUrlParameter('ui');
-        if (ui === 'false') {
-          this.hideUI();
-        }
-      }
-    },
-
-    enterVR: {
-      value: function () {
-        this.hideUI();
-        this.setStereoRenderer();
-        this.setFullscreen();
-        this.showOrientationModal();
-      }
-    },
-
-    exitVR: {
-      value: function () {
-        this.showUI();
-        this.setMonoRenderer();
-        this.orientationModal.classList.add(HIDDEN_CLASS);
       }
     },
 
@@ -547,7 +496,6 @@ var AScene = module.exports = registerElement('a-scene', {
      */
     setupKeyboardShortcuts: {
       value: function () {
-        var self = this;
         window.addEventListener('keyup', function (event) {
           if (event.keyCode === 70) {  // f.
             self.enterVR();
@@ -665,7 +613,6 @@ var AScene = module.exports = registerElement('a-scene', {
           self.render();
           self.renderStarted = true;
           self.emit('renderstart');
-          self.checkUrlParameters();
         });
 
         AEntity.prototype.load.call(this);
