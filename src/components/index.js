@@ -15,5 +15,6 @@ require('../components/visible');
 require('../components/wasd-controls');
 
 require('../components/scene/fog');
+require('../components/scene/stats');
 require('../components/scene/vr-mode-ui');
 require('../components/scene/vr-mode');
