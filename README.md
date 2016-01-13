@@ -1,6 +1,10 @@
 # A-Frame Core
 
+> NOTE: `aframe-core` has merged into `aframe` dev branch and all development has moved to the `aframe` repo. This repository will be removed later.
+
 A DOM-based [Entity-Component System](https://en.wikipedia.org/wiki/Entity_component_system) to declaratively create 3D and VR worlds in the browser.
+
+The goal of this project is to design a set of HTML tags to describe 3D scenes in the browser.
 
 > This library is specific to the core A-Frame library. For more information about the A-Frame project as a whole, head over to [the A-Frame site](https://aframe.io) or [the `aframe` repo](https://github.com/aframevr/aframe/).
 
