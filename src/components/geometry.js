@@ -87,7 +87,7 @@ module.exports.Component = registerComponent('geometry', {
     var data = this.data;
     var currentTranslate = previousData.translate || this.schema.translate.default;
     var diff = utils.diff(previousData, data);
-    var mesh = this.el.getObject3D('mesh', THREE.Mesh);
+    var mesh = this.el.getOrCreateObject3D('mesh', THREE.Mesh);
     var geometry = mesh.geometry;
     var geometryNeedsUpdate = !(Object.keys(diff).length === 1 && 'translate' in diff);
     var translateNeedsUpdate = !utils.deepEqual(data.translate, currentTranslate);

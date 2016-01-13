@@ -111,7 +111,7 @@ module.exports.Component = registerComponent('material', {
    */
   createMaterial: function (data, type) {
     var material;
-    var mesh = this.el.getObject3D('mesh', THREE.Mesh);
+    var mesh = this.el.getOrCreateObject3D('mesh');
     var sceneEl = this.el.sceneEl;
     if (this.material) {
       sceneEl.unregisterMaterial(this.material);

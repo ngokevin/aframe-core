@@ -44,7 +44,7 @@ var proto = Object.create(ANode.prototype, {
       this.states = [];
       this.components = {};
       this.paused = true;
-      this.object3D = new THREE.Object3D();
+      this.object3D = new THREE.Group();
       this.object3D.el = this;
       this.objects3D = {};
     }
@@ -149,6 +149,17 @@ var proto = Object.create(ANode.prototype, {
         obj.el = this;
         this.object3D.add(obj);
       }
+    }
+  },
+
+  getOrCreateObject3D: {
+    value: function(type, Constructor) {
+      var object3D = this.getObject3D(type);
+      if (!object3D && Constructor) {
+        object3D = this.objects3D[type] = new Constructor();
+        this.setObject3D(type, object3D);
+      }
+      return object3D;
     }
   },
 
