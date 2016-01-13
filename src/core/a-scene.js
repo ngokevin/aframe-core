@@ -1,6 +1,5 @@
 /* global MessageChannel, Promise */
 var re = require('./a-register-element');
-var RStats = require('../../lib/vendor/rStats');
 var THREE = require('../../lib/three');
 var TWEEN = require('tween.js');
 var utils = require('../utils/');
@@ -10,16 +9,10 @@ var Wakelock = require('../../lib/vendor/wakelock/wakelock');
 
 var dummyDolly = new THREE.Object3D();
 var controls = new THREE.VRControls(dummyDolly);
+
 var DEFAULT_CAMERA_ATTR = 'data-aframe-default-camera';
 var DEFAULT_LIGHT_ATTR = 'data-aframe-default-light';
-var HIDDEN_CLASS = 'a-hidden';
 var registerElement = re.registerElement;
-var ENTER_VR_CLASS = 'a-enter-vr';
-var ENTER_VR_NO_HEADSET = 'data-a-enter-vr-no-headset';
-var ENTER_VR_NO_WEBVR = 'data-a-enter-vr-no-webvr';
-var ENTER_VR_BTN_CLASS = 'a-enter-vr-button';
-var ENTER_VR_MODAL_CLASS = 'a-enter-vr-modal';
-var ORIENTATION_MODAL_CLASS = 'a-orientation-modal';
 var isMobile = utils.isMobile();
 
 /**
@@ -29,9 +22,7 @@ var isMobile = utils.isMobile();
  * @member {array} behaviors - Component instances that have registered themselves to be
            updated on every tick.
  * @member {object} canvas
- * @member {Element} enterVREl
  * @member {bool} insideIframe
- * @member {bool} insideLoader
  * @member {bool} isScene - Differentiates this as a scene entity as opposed
            to other `AEntity`s.
  * @member {bool} isMobile - Whether browser is mobile (via UA detection).
@@ -39,18 +30,21 @@ var isMobile = utils.isMobile();
  * @member {object} monoRenderer
  * @member {object} renderer
  * @member {bool} renderStarted
- * @member {object} stats
- * @member {object} stereoRenderer
- * @member {object} wakelock
+ * @member {object} stereoRenderer * @member {object} wakelock
  */
 var AScene = module.exports = registerElement('a-scene', {
   prototype: Object.create(AEntity.prototype, {
+    defaultComponents: {
+      value: {
+        'vr-mode': '',
+        'vr-mode-ui': ''
+      }
+    },
+
     createdCallback: {
       value: function () {
         this.defaultLightsEnabled = true;
-        this.enterVREl = null;
         this.insideIframe = window.top !== window.self;
-        this.insideLoader = false;
         this.isScene = true;
         this.object3D = new THREE.Scene();
         this.init();
@@ -91,20 +85,8 @@ var AScene = module.exports = registerElement('a-scene', {
         var resizeCanvas = this.resizeCanvas.bind(this);
         this.setupKeyboardShortcuts();
         this.attachFullscreenListeners();
-        this.attachOrientationListeners();
         // For Chrome (https://github.com/aframevr/aframe-core/issues/321).
         window.addEventListener('load', resizeCanvas);
-      }
-    },
-
-    /**
-     * Handle stats.
-     * TODO: move stats to a component.
-     */
-    attributeChangedCallback: {
-      value: function (attr, oldVal, newVal) {
-        if (oldVal === newVal) { return; }
-        if (attr === 'stats') { this.setupStats(); }
       }
     },
 
@@ -128,23 +110,6 @@ var AScene = module.exports = registerElement('a-scene', {
       }
     },
 
-    attachOrientationListeners: {
-      value: function (e) {
-        window.addEventListener('orientationchange', this.showOrientationModal.bind(this));
-      }
-    },
-
-    showOrientationModal: {
-      value: function () {
-        if (!utils.isIOS()) { return; }
-        if (!utils.isLandscape() && this.renderer === this.stereoRenderer) {
-          this.orientationModal.classList.remove(HIDDEN_CLASS);
-        } else {
-          this.orientationModal.classList.add(HIDDEN_CLASS);
-        }
-      }
-    },
-
     /**
      * Switch back to mono renderer if no longer in fullscreen VR.
      * Lock to landscape orientation on mobile when fullscreen.
@@ -164,7 +129,6 @@ var AScene = module.exports = registerElement('a-scene', {
             }
           }
           if (!fsElement) {
-            this.showUI();
             this.setMonoRenderer();
           }
           if (this.wakelock) { this.wakelock.release(); }
@@ -185,11 +149,6 @@ var AScene = module.exports = registerElement('a-scene', {
         window.addEventListener('message', function (e) {
           if (e.data) {
             switch (e.data.type) {
-              case 'loaderReady': {
-                self.insideLoader = true;
-                self.removeEnterVRButton();
-                break;
-              }
               case 'fullscreen': {
                 switch (e.data.data) {
                   // Set renderer with fullscreen VR enter and exit.
@@ -204,40 +163,6 @@ var AScene = module.exports = registerElement('a-scene', {
             }
           }
         });
-      }
-    },
-
-    /**
-     * Enters VR when ?mode=vr is specified in the querystring.
-     */
-    checkUrlParameters: {
-      value: function () {
-        var mode = utils.getUrlParameter('mode');
-        if (mode === 'vr') {
-          this.enterVR();
-        }
-
-        var ui = utils.getUrlParameter('ui');
-        if (ui === 'false') {
-          this.hideUI();
-        }
-      }
-    },
-
-    enterVR: {
-      value: function () {
-        this.hideUI();
-        this.setStereoRenderer();
-        this.setFullscreen();
-        this.showOrientationModal();
-      }
-    },
-
-    exitVR: {
-      value: function () {
-        this.showUI();
-        this.setMonoRenderer();
-        this.orientationModal.classList.add(HIDDEN_CLASS);
       }
     },
 
@@ -256,17 +181,6 @@ var AScene = module.exports = registerElement('a-scene', {
           height: canvas.offsetHeight,
           width: canvas.offsetWidth
         };
-      }
-    },
-
-    hideUI: {
-      value: function () {
-        if (this.statsEl) {
-          this.statsEl.classList.add(HIDDEN_CLASS);
-        }
-        if (this.enterVREl) {
-          this.enterVREl.classList.add(HIDDEN_CLASS);
-        }
       }
     },
 
@@ -377,14 +291,6 @@ var AScene = module.exports = registerElement('a-scene', {
       }
     },
 
-    removeEnterVR: {
-      value: function () {
-        if (this.enterVREl) {
-          this.enterVREl.parentNode.removeChild(this.enterVREl);
-        }
-      }
-    },
-
     resizeCanvas: {
       value: function () {
         var camera = this.camera;
@@ -433,16 +339,6 @@ var AScene = module.exports = registerElement('a-scene', {
     setMonoRenderer: {
       value: function () {
         this.renderer = this.monoRenderer;
-        this.resizeCanvas();
-      }
-    },
-
-    /**
-     * Sets renderer to stereo (two eyes) and resizes canvas.
-     */
-    setStereoRenderer: {
-      value: function () {
-        this.renderer = this.stereoRenderer;
         this.resizeCanvas();
       }
     },
@@ -517,29 +413,6 @@ var AScene = module.exports = registerElement('a-scene', {
       }
     },
 
-    setupEnterVR: {
-      value: function () {
-        if (this.enterVREl) { return; }
-        this.enterVREl = createEnterVR(this.enterVR.bind(this));
-        document.body.appendChild(this.enterVREl);
-      }
-    },
-
-    setupOrientationModal: {
-      value: function () {
-        var modal = this.orientationModal = document.createElement('div');
-        modal.className = ORIENTATION_MODAL_CLASS;
-        modal.classList.add(HIDDEN_CLASS);
-
-        var exit = document.createElement('button');
-        exit.innerHTML = 'Exit VR';
-        exit.addEventListener('click', this.exitVR.bind(this));
-        modal.appendChild(exit);
-
-        document.body.appendChild(modal);
-      }
-    },
-
     /**
      * Set up keyboard shortcuts to:
      *   - Enter VR when `f` is pressed.
@@ -547,11 +420,7 @@ var AScene = module.exports = registerElement('a-scene', {
      */
     setupKeyboardShortcuts: {
       value: function () {
-        var self = this;
         window.addEventListener('keyup', function (event) {
-          if (event.keyCode === 70) {  // f.
-            self.enterVR();
-          }
           if (event.keyCode === 90) {  // z.
             controls.resetSensor();
           }
@@ -577,10 +446,6 @@ var AScene = module.exports = registerElement('a-scene', {
             window.top.postMessage({type: 'ready'}, '*');
           });
         }
-        if (!self.insideLoader) {
-          self.setupEnterVR();
-          self.setupOrientationModal();
-        }
       }
     },
 
@@ -605,44 +470,6 @@ var AScene = module.exports = registerElement('a-scene', {
     },
 
     /**
-     * TODO: move stats to component.
-     */
-    setupStats: {
-      value: function () {
-        var statsEnabled = this.getAttribute('stats') === 'true';
-        var statsEl = this.statsEl = document.querySelector('.rs-base');
-        if (!statsEnabled) {
-          if (statsEl) { statsEl.classList.add(HIDDEN_CLASS); }
-          return;
-        }
-        if (statsEl) { statsEl.classList.remove(HIDDEN_CLASS); }
-        if (this.stats) { return; }
-        this.stats = new RStats({
-          CSSPath: '../../style/',
-          values: {
-            fps: { caption: 'fps', below: 30 }
-          },
-          groups: [
-            { caption: 'Framerate', values: [ 'fps', 'raf' ] }
-          ]
-        });
-        this.statsEl = document.querySelector('.rs-base');
-      }
-    },
-
-    showUI: {
-      value: function () {
-        var statsEnabled = this.getAttribute('stats') === 'true';
-        if (statsEnabled) {
-          this.statsEl.classList.remove(HIDDEN_CLASS);
-        }
-        if (this.enterVREl) {
-          this.enterVREl.classList.remove(HIDDEN_CLASS);
-        }
-      }
-    },
-
-    /**
      * Handler attached to elements to help scene know when to kick off.
      * Scene waits for all entities to load.
      */
@@ -659,13 +486,11 @@ var AScene = module.exports = registerElement('a-scene', {
 
           this.setupLoader();
           AEntity.prototype.play.call(self);
-          self.setupStats();
           self.resizeCanvas();
           // Kick off render loop.
           self.render();
           self.renderStarted = true;
           self.emit('renderstart');
-          self.checkUrlParameters();
         });
 
         AEntity.prototype.load.call(this);
@@ -715,7 +540,6 @@ var AScene = module.exports = registerElement('a-scene', {
     /**
      * The render loop.
      *
-     * Updates stats.
      * Updates animations.
      * Updates behaviors.
      * Renders with request animation frame.
@@ -723,18 +547,11 @@ var AScene = module.exports = registerElement('a-scene', {
     render: {
       value: function (t) {
         var camera = this.camera;
-        var stats = this.stats;
-
-        if (stats) {
-          stats('rAF').tick();
-          stats('FPS').frame();
-        }
         TWEEN.update(t);
         this.behaviors.forEach(function (behavior) {
           behavior.update();
         });
         this.renderer.render(this.object3D, camera);
-        if (stats) { stats().update(); }
         this.animationFrameID = window.requestAnimationFrame(
           this.render.bind(this));
       },
@@ -762,80 +579,6 @@ var AScene = module.exports = registerElement('a-scene', {
 
   })
 });
-
-/**
- * Creates Enter VR flow (button and compatibility modal).
- *
- * Creates a button that when clicked will enter into stereo-rendering mode for VR.
- *
- * For compatibility:
- *   - Mobile always has compatibility via polyfill.
- *   - If desktop browser does not have WebVR excluding polyfill, disable button, show modal.
- *   - If desktop browser has WebVR excluding polyfill but not headset connected,
- *     don't disable button, but show modal.
- *   - If desktop browser has WebVR excluding polyfill and has headset connected, then
- *     then no modal.
- *
- * Structure: <div><modal/><button></div>
- *
- * @returns {Element} Wrapper <div>.
- */
-function createEnterVR (enterVRHandler) {
-  var compatModal;
-  var compatModalLink;
-  var compatModalText;
-  // window.hasNativeVRSupport is set in src/aframe-core.js.
-  var hasWebVR = isMobile || window.hasNonPolyfillWebVRSupport;
-  var orientation;
-  var vrButton;
-  var wrapper;
-
-  // Create elements.
-  wrapper = document.createElement('div');
-  wrapper.classList.add(ENTER_VR_CLASS);
-  compatModal = document.createElement('div');
-  compatModal.className = ENTER_VR_MODAL_CLASS;
-  compatModalText = document.createElement('p');
-  compatModalLink = document.createElement('a');
-  compatModalLink.setAttribute('href', 'http://mozvr.com/#start');
-  compatModalLink.setAttribute('target', '_blank');
-  compatModalLink.innerHTML = 'Learn more.';
-  vrButton = document.createElement('button');
-  vrButton.className = ENTER_VR_BTN_CLASS;
-
-  // Insert elements.
-  if (compatModal) {
-    compatModal.appendChild(compatModalText);
-    compatModal.appendChild(compatModalLink);
-    wrapper.appendChild(compatModal);
-  }
-  wrapper.appendChild(vrButton);
-
-  if (!checkHeadsetConnected() && !isMobile) {
-    compatModalText.innerHTML = 'Your browser supports WebVR. To enter VR, connect a headset, or use a mobile phone.';
-    wrapper.setAttribute(ENTER_VR_NO_HEADSET, '');
-  }
-
-  // Handle enter VR flows.
-  if (!hasWebVR) {
-    compatModalText.innerHTML = 'Your browser does not support WebVR. To enter VR, use a VR-compatible browser or a mobile phone.';
-    wrapper.setAttribute(ENTER_VR_NO_WEBVR, '');
-  } else {
-    vrButton.addEventListener('click', enterVRHandler);
-  }
-  return wrapper;
-
-  /**
-   * Check for headset connection by looking at orientation {0 0 0}.
-   */
-  function checkHeadsetConnected () {
-    controls.update();
-    orientation = dummyDolly.quaternion;
-    if (orientation._x !== 0 || orientation._y !== 0 || orientation._z !== 0) {
-      return true;
-    }
-  }
-}
 
 /**
  * Injects the necessary metatags in the document for mobile support to:

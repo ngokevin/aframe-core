@@ -6,6 +6,7 @@
 window.debug = true;
 
 var AScene = require('core/a-scene');
+var VRModeComponent = require('components/scene/vr-mode').Component;
 
 setup(function () {
   this.sinon = sinon.sandbox.create();
@@ -13,6 +14,7 @@ setup(function () {
   this.sinon.stub(AScene.prototype, 'setupRenderer');
   this.sinon.stub(AScene.prototype, 'resizeCanvas');
   this.sinon.stub(AScene.prototype, 'render');
+  this.sinon.stub(VRModeComponent.prototype, 'init');
 });
 
 teardown(function () {
