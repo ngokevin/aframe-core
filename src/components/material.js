@@ -96,7 +96,7 @@ module.exports.Component = registerComponent('material', {
     var el = this.el;
     var defaultColor = this.schema.color.default;
     var defaultMaterial = new THREE.MeshBasicMaterial({ color: defaultColor });
-    var object3D = el.object3D;
+    var object3D = el.getObject3D('mesh');
     if (object3D) { object3D.material = defaultMaterial; }
     el.sceneEl.unregisterMaterial(this.material);
   },
@@ -111,11 +111,12 @@ module.exports.Component = registerComponent('material', {
    */
   createMaterial: function (data, type) {
     var material;
+    var mesh = this.el.getOrCreateObject3D('mesh');
     var sceneEl = this.el.sceneEl;
     if (this.material) {
       sceneEl.unregisterMaterial(this.material);
     }
-    material = this.material = this.el.object3D.material = new THREE[type](data);
+    material = this.material = mesh.material = new THREE[type](data);
     sceneEl.registerMaterial(material);
     return material;
   },
