@@ -1,6 +1,6 @@
 # A-Frame Core
 
-> NOTE: `aframe-core` has merged into `aframe` dev branch and all development has moved to the `aframe` repo. This repository will be removed later.
+> SUPER NOTE: `aframe-core` has merged into `aframe` dev branch and all development has moved to the `aframe` repo. This repository will be removed later.
 
 A DOM-based [Entity-Component System](https://en.wikipedia.org/wiki/Entity_component_system) to declaratively create 3D and VR worlds in the browser.
 
