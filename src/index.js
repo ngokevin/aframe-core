@@ -21,12 +21,12 @@ var ANode = require('./core/a-node');
 var AEntity = require('./core/a-entity');  // Depends on ANode and core components.
 
 // Webvr polyfill configuration.
-window.hasNonPolyfillWebVRSupport = !!navigator.getVRDevices;
+window.hasNonPolyfillWebVRSupport = 'getVRDisplays' in navigator || 'getVRDevices' in navigator;
 window.WebVRConfig = {
   TOUCH_PANNER_DISABLED: true,
   MOUSE_KEYBOARD_CONTROLS_DISABLED: true
 };
-require('webvr-polyfill');
+require('../node_modules/webvr-libs/webvr-polyfill');
 
 require('./core/a-animation');
 require('./core/a-assets');
