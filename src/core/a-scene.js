@@ -793,23 +793,30 @@ function createEnterVR (enterVRHandler) {
 function injectMetaTags () {
   var headEl;
   var meta = document.querySelector('meta[name="viewport"]');
-  if (meta) { return; }  // Already exists.
 
-  headEl = document.getElementsByTagName('head')[0];
-  meta = document.createElement('meta');
-  meta.name = 'viewport';
-  meta.content =
-    'width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no';
-  headEl.appendChild(meta);
+  if (!meta) {
+    headEl = document.getElementsByTagName('head')[0];
+    meta = document.createElement('meta');
+    meta.name = 'viewport';
+    meta.content =
+      'width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no,maximum-scale=1';
+    headEl.appendChild(meta);
+  }
 
   // iOS-specific meta tags for fullscreen when pinning to homescreen.
-  meta = document.createElement('meta');
-  meta.name = 'apple-mobile-web-app-capable';
-  meta.content = 'yes';
-  headEl.appendChild(meta);
+  meta = document.querySelector('meta[name="apple-mobile-web-app-capable"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'apple-mobile-web-app-capable';
+    meta.content = 'yes';
+    headEl.appendChild(meta);
+  }
 
-  meta = document.createElement('meta');
-  meta.name = 'apple-mobile-web-app-status-bar-style';
-  meta.content = 'black';
-  headEl.appendChild(meta);
+  meta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'apple-mobile-web-app-status-bar-style';
+    meta.content = 'black';
+    headEl.appendChild(meta);
+  }
 }
